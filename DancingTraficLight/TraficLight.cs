@@ -19,7 +19,7 @@ namespace DancingTraficLight
 
         const int MATRIX_WIDTH = 64;
         bool[,] outputMatrix = new bool[MATRIX_WIDTH, MATRIX_WIDTH];
-        const float matrixUnitInMeter = 0.033f;//0.038f;
+        const float matrixUnitInMeter = /*0.033f;//*/0.038f;
         const int verticalOffset = -7;
         const int horizontalOffset = 0;
         
@@ -122,41 +122,44 @@ namespace DancingTraficLight
             // Head
             DrawCircle(joints[JointType.Head].Position, HEAD_DIAMETER);
 
-            // Torso
-           // DrawBone(joints, JointType.Neck, JointType.SpineShoulder, NECK_WIDTH);                    // Neck
-            DrawBone(joints, JointType.SpineShoulder, JointType.SpineMid);           // Chest
+           // Torso
+            //DrawBone(joints, JointType.Neck, JointType.SpineShoulder);                    // Neck
+            DrawBone(joints, JointType.SpineShoulder, JointType.SpineMid, 4);           // Chest
 
-            DrawBone(joints, JointType.SpineMid, JointType.SpineBase);               // Hip
-            DrawBone(joints, JointType.SpineMid, JointType.ShoulderLeft);
-            DrawBone(joints, JointType.SpineMid, JointType.ShoulderRight);
-            DrawBone(joints, JointType.ShoulderLeft, JointType.ShoulderRight);
-
+            DrawBone(joints, JointType.SpineMid, JointType.SpineBase, 6);               // Hip
+            
             DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderLeft);          // Left Shoulder
             DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderRight);         // Right Shoulder
+            DrawBone(joints, JointType.SpineMid, JointType.ShoulderRight, 2);
+            DrawBone(joints, JointType.SpineMid, JointType.ShoulderLeft, 2);
+            DrawBone(joints, JointType.ShoulderLeft, JointType.ShoulderRight);
+
+            //DrawBone(joints, JointType.HipRight, JointType.ShoulderRight);
+            //DrawBone(joints, JointType.HipLeft, JointType.ShoulderLeft);
 
             // Right Arm
             DrawBone(joints, JointType.ShoulderRight, JointType.ElbowRight);           // Right Upper Arm
             DrawBone(joints, JointType.ElbowRight, JointType.WristRight);              // Right Lower Arm
-            //DrawBone(joints, JointType.WristRight, JointType.HandRight, HAND_WIDTH);                  // Right Hand tip
+            DrawBone(joints, JointType.WristRight, JointType.HandRight);                  // Right Hand tip
 
             // Left Arm
             DrawBone(joints, JointType.ShoulderLeft, JointType.ElbowLeft);             // Left Upper Arm
             DrawBone(joints, JointType.ElbowLeft, JointType.WristLeft);                // Left Lower Arm
-            //DrawBone(joints, JointType.WristLeft, JointType.HandLeft, HAND_WIDTH);                    // Left Hand tip
+            DrawBone(joints, JointType.WristLeft, JointType.HandLeft);                    // Left Hand tip
 
             // Right Leg
             DrawBone(joints, JointType.HipRight, JointType.KneeRight);                 // Right Upper leg
             DrawBone(joints, JointType.KneeRight, JointType.AnkleRight);               // Right Lower leg
-            //DrawBone(joints, JointType.AnkleRight, JointType.FootRight, FEET_WIDTH);                  // Right Feet
+            DrawBone(joints, JointType.AnkleRight, JointType.FootRight);                  // Right Feet
 
             // Left Leg
             DrawBone(joints, JointType.HipLeft, JointType.KneeLeft);                   // Left Upper leg
             DrawBone(joints, JointType.KneeLeft, JointType.AnkleLeft);                 // Left Lower leg
-            //DrawBone(joints, JointType.AnkleLeft, JointType.FootLeft, FEET_WIDTH);                    // Left Feet
+            DrawBone(joints, JointType.AnkleLeft, JointType.FootLeft);                    // Left Feet
         }
 
         /// <summary>Két izület között rajzol vonalat, adott távolságonként téglalapot rajzolva (a = szélesség, b = magasság).</summary>
-        private void DrawBone(IReadOnlyDictionary<JointType, Joint> joints, JointType jointType0, JointType jointType1, int lineWidth = 1)
+        private void DrawBone(IReadOnlyDictionary<JointType, Joint> joints, JointType jointType0, JointType jointType1, int lineWidth = 2)
         {
             Joint joint0 = joints[jointType0];
             Joint joint1 = joints[jointType1];
@@ -168,14 +171,11 @@ namespace DancingTraficLight
                 return;
             }
 
-            //// We assume all drawn bones are inferred unless BOTH joints are tracked
-            //if ((joint0.TrackingState == TrackingState.Tracked) && (joint1.TrackingState == TrackingState.Tracked))
-            //{
+
             Point pointA = GridPositionCameraPoint(joint0.Position);
             Point pointB = GridPositionCameraPoint(joint1.Position);
 
-            DrawLine(pointA.X, pointA.Y, pointB.X, pointB.Y);
-            //}
+            DrawLineWithWidth(pointA.X, pointA.Y, pointB.X, pointB.Y, lineWidth);
         }
         
         /// <summary>
@@ -185,11 +185,13 @@ namespace DancingTraficLight
         /// <param name="diameter"></param>
         private void DrawCircle(CameraSpacePoint point, int diameter)
         {
-            int x = (int)Math.Floor(point.X / matrixUnitInMeter);
-            int y = (int)Math.Floor(point.Y / matrixUnitInMeter);
+            Point point2 = GridPositionCameraPoint(point);
 
-            x += (MATRIX_WIDTH / 2) + horizontalOffset - diameter / 2;
-            y += (MATRIX_WIDTH / 2) + verticalOffset - diameter / 2;
+            int x = point2.X;
+            int y = point2.Y;
+
+            x -= diameter / 2;
+            y -= 1 + diameter / 2;
 
             //Jelenleg csak diameter = 8 esetén működik megfelelően
             for ( var i = 0; i < diameter; i++ )
@@ -234,7 +236,11 @@ namespace DancingTraficLight
             }
         }
 
-        public void DrawLine(int x, int y, int x2, int y2)
+        public void DrawLineWithWidth(int x, int y, int x2, int y2, int lineWidth)
+        {
+            DrawLine(x, y, x2, y2, lineWidth);
+        }
+        public void DrawLine(int x, int y, int x2, int y2, int lineWidth)
         {
             int w = x2 - x;
             int h = y2 - y;
@@ -254,7 +260,7 @@ namespace DancingTraficLight
             int numerator = longest >> 1;
             for (int i = 0; i <= longest; i++)
             {
-                DrawPoint(x, y);
+                DrawBox(x, y, lineWidth);
                 numerator += shortest;
                 if (!(numerator < longest))
                 {
@@ -269,22 +275,25 @@ namespace DancingTraficLight
                 }
             }
         }
-        public void DrawPoint(int x, int y)
+        public void DrawBox(int x, int y, int width)
         {
-            if (0 <= x && x < MATRIX_WIDTH && 0 <= y && y < MATRIX_WIDTH)
+            for (int i = x - width /2; i < x + width /2; i++)
             {
-                outputMatrix[x, y] = true;
+                for (int j = y - width /2; j < y + width /2; j++)
+                {
+                    if (0 <= i && i < MATRIX_WIDTH && 0 <= j && j < MATRIX_WIDTH)
+                    {
+                        outputMatrix[i, j] = true;
+                    }
+                }
             }
         }
-        //public void InputBox_ValueChanged(object sender, EventArgs e)
+
+        //private float CalculateAngle(int x, int y, int x2, int y2)
         //{
-        //    ResetMatrix();
-
-        //    DrawLine( (int)input_x1.Value, (int)input_y1.Value, (int)input_x2.Value, (int)input_y2.Value);
-
-        //    RefreshImage();
+        //    return Math.Abs((float)(Math.Atan2(y2 - y, x2 - x) * (180.0 / Math.PI)));
         //}
-        
+
         #endregion
         #region FormApp functions
 
