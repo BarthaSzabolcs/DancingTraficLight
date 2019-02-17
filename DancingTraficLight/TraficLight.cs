@@ -8,65 +8,35 @@ namespace DancingTraficLight
 {
     public partial class TraficLight : Form
     {
-        #region Kinect
-
+        // Kinect
         private KinectSensor kinectSensor;
         private BodyFrameReader bodyFrameReader;
         private IList<Body> bodies;
-        
-        #endregion
-        #region Output parameters
+        private Dictionary<JointType, Point> latestJointPositions;
 
+        // World To Matrix parameters
         const int MATRIX_WIDTH = 64;
         bool[,] outputMatrix = new bool[MATRIX_WIDTH, MATRIX_WIDTH];
         const float matrixUnitInMeter = /*0.033f;//*/0.038f;
         const int verticalOffset = -7;
         const int horizontalOffset = 0;
         
-        #endregion
-        #region FormApplication output parameters
-
+        // FormApp needs it
         Bitmap matrixImage = new Bitmap(MATRIX_WIDTH, MATRIX_WIDTH);
         Color positiveColor = Color.FromArgb(255, 200, 0, 0);
         Color negativeColor = Color.FromArgb(255, 0, 0, 0);
-        
-        #endregion
-        #region Body patameters
-        //Leg
-        const float FEET_WIDTH          = 0.1250f;
-        const float LOWER_LEG_WIDTH     = 0.1300f;
-        const float UPPER_LEG_WIDTH     = 0.1300f;
-
-        //Arm
-        const float HAND_TIP_WIDTH      = 0.0750f;
-        const float HAND_WIDTH          = 0.1250f;
-        const float LOWER_ARM_WIDTH     = 0.1000f;
-        const float UPPER_ARM_WIDTH     = 0.1000f;
-
-        //Torso
-        const int   HEAD_DIAMETER       = 8;        //jelenleg az egyetlen helyes érték
-        const float NECK_WIDTH          = 0.1250f;
-        const float SHOULDER_WITDH      = 0.1000f;
-        const float PLUS_BONE_WIDTH     = 0.1250f;
-        const float UPPER_TORSO_WIDTH   = 0.1500f;
-        const float LOWER_TORSO_WIDTH   = 0.250f;
-        const float HIP_WIDTH           = 0.1250f;
-
-        #endregion
-        #region Helper variables
-
-        CameraSpacePoint point_1 = new CameraSpacePoint();
-        CameraSpacePoint point_2 = new CameraSpacePoint();
-        
-        #endregion
 
         public TraficLight()
         {
             InitializeComponent();
             InitializeKinect();
-        }
 
-        #region Kinect Handling
+            latestJointPositions = new Dictionary<JointType, Point>();
+            foreach (var jointType in Enum.GetNames(typeof(JointType)))
+            {
+                latestJointPositions.Add((JointType)Enum.Parse(typeof(JointType), jointType), Point.Empty);
+            }
+        }
         private void InitializeKinect()
         {
             kinectSensor = KinectSensor.GetDefault();
@@ -75,12 +45,6 @@ namespace DancingTraficLight
             bodyFrameReader = kinectSensor.BodyFrameSource.OpenReader();
             bodyFrameReader.FrameArrived += HandleFrameArrived;
         }
-
-        /// <summary>
-        /// Az új képkocka adatait fogadó függvény.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void HandleFrameArrived(object sender, BodyFrameArrivedEventArgs e)
         {
             using (BodyFrame bodyFrame = e.FrameReference.AcquireFrame())
@@ -108,19 +72,12 @@ namespace DancingTraficLight
             RefreshImage();
         }
 
-        #endregion
-        #region Advanced draw functions
-
-        /// <summary>
-        /// Az egész test kirajzolásáért felelős függvény.
-        /// </summary>
-        /// <param name="body"></param>
         private void DrawBody(Body body)
         {
             IReadOnlyDictionary<JointType, Joint> joints = body.Joints;
 
             // Head
-            DrawCircle(joints[JointType.Head].Position, HEAD_DIAMETER);
+            DrawCircle(joints[JointType.Head].Position, 8);
 
            // Torso
             //DrawBone(joints, JointType.Neck, JointType.SpineShoulder);                    // Neck
@@ -157,89 +114,32 @@ namespace DancingTraficLight
             DrawBone(joints, JointType.KneeLeft, JointType.AnkleLeft);                 // Left Lower leg
             DrawBone(joints, JointType.AnkleLeft, JointType.FootLeft);                    // Left Feet
         }
-
-        /// <summary>Két izület között rajzol vonalat, adott távolságonként téglalapot rajzolva (a = szélesség, b = magasság).</summary>
         private void DrawBone(IReadOnlyDictionary<JointType, Joint> joints, JointType jointType0, JointType jointType1, int lineWidth = 2)
         {
             Joint joint0 = joints[jointType0];
             Joint joint1 = joints[jointType1];
 
             // If we can't find either of these joints, exit
-            if (joint0.TrackingState == TrackingState.NotTracked ||
-                joint1.TrackingState == TrackingState.NotTracked)
+            if (joint0.TrackingState == TrackingState.NotTracked || joint1.TrackingState == TrackingState.NotTracked)
             {
                 return;
             }
 
-
-            Point pointA = GridPositionCameraPoint(joint0.Position);
-            Point pointB = GridPositionCameraPoint(joint1.Position);
-
-            DrawLineWithWidth(pointA.X, pointA.Y, pointB.X, pointB.Y, lineWidth);
-        }
-        
-        /// <summary>
-        /// Kört rajzol az adott pont köré, jelenleg csak 8-as diameter esetén működik megfelelően.
-        /// </summary>
-        /// <param name="point"></param>
-        /// <param name="diameter"></param>
-        private void DrawCircle(CameraSpacePoint point, int diameter)
-        {
-            Point point2 = GridPositionCameraPoint(point);
-
-            int x = point2.X;
-            int y = point2.Y;
-
-            x -= diameter / 2;
-            y -= 1 + diameter / 2;
-
-            //Jelenleg csak diameter = 8 esetén működik megfelelően
-            for ( var i = 0; i < diameter; i++ )
+            if (joint0.TrackingState == TrackingState.Tracked)
             {
-                for ( var j = 0; j < diameter; j++ )
-                {
-                    if (0 <= x + i && Math.Abs(x + i) < MATRIX_WIDTH && 0 <= y + j && Math.Abs(y + j) < MATRIX_WIDTH)
-                    {
-
-                        if( 1 < i && i < 6 || 1 < j && j < 6)
-                        {
-                            outputMatrix[x + i, y + j] = true;
-                        }
-                        else if ((i == 1 || i == 6) && (j == 1 || j == 6))
-                        {
-                            outputMatrix[x + i, y + j] = true;
-                        }
-                    }
-                }
+                latestJointPositions[jointType0] = GridPositionCameraPoint(joint0.Position);
             }
-        }
-
-        #endregion
-        #region Basic draw functions
-        
-        // New Shit
-        private Point GridPositionCameraPoint(CameraSpacePoint point)
-        {
-            int x = (int)Math.Floor(point.X / matrixUnitInMeter);
-            int y = (int)Math.Floor(point.Y / matrixUnitInMeter);
-
-            x += (MATRIX_WIDTH / 2) + horizontalOffset;
-            y += (MATRIX_WIDTH / 2) + verticalOffset;
-
-            if (0 <= x && Math.Abs(x) < MATRIX_WIDTH && 0 <= y && Math.Abs(y) < MATRIX_WIDTH)
+            if (joint1.TrackingState == TrackingState.Tracked)
             {
-                return new Point(x, y);
+                latestJointPositions[jointType1] = GridPositionCameraPoint(joint1.Position);
             }
-            else
-            {
-                return new Point(0, 0);
-            }
+
+            Point pointA = latestJointPositions[jointType0];
+            Point pointB = latestJointPositions[jointType1];
+
+            DrawLine(pointA.X, pointA.Y, pointB.X, pointB.Y, lineWidth);
         }
 
-        public void DrawLineWithWidth(int x, int y, int x2, int y2, int lineWidth)
-        {
-            DrawLine(x, y, x2, y2, lineWidth);
-        }
         public void DrawLine(int x, int y, int x2, int y2, int lineWidth)
         {
             int w = x2 - x;
@@ -277,9 +177,9 @@ namespace DancingTraficLight
         }
         public void DrawBox(int x, int y, int width)
         {
-            for (int i = x - width /2; i < x + width /2; i++)
+            for (int i = x - width / 2; i < x + width / 2; i++)
             {
-                for (int j = y - width /2; j < y + width /2; j++)
+                for (int j = y - width / 2; j < y + width / 2; j++)
                 {
                     if (0 <= i && i < MATRIX_WIDTH && 0 <= j && j < MATRIX_WIDTH)
                     {
@@ -288,18 +188,54 @@ namespace DancingTraficLight
                 }
             }
         }
+        private void DrawCircle(CameraSpacePoint point, int diameter)
+        {
+            Point point2 = GridPositionCameraPoint(point);
 
-        //private float CalculateAngle(int x, int y, int x2, int y2)
-        //{
-        //    return Math.Abs((float)(Math.Atan2(y2 - y, x2 - x) * (180.0 / Math.PI)));
-        //}
+            int x = point2.X;
+            int y = point2.Y;
 
-        #endregion
-        #region FormApp functions
+            x -= diameter / 2;
+            y -= 1 + diameter / 2;
 
-        /// <summary>
-        /// Lenullázza a mátrix értékeit.
-        /// </summary>
+            //Jelenleg csak diameter = 8 esetén működik megfelelően
+            for ( var i = 0; i < diameter; i++ )
+            {
+                for ( var j = 0; j < diameter; j++ )
+                {
+                    if (0 <= x + i && Math.Abs(x + i) < MATRIX_WIDTH && 0 <= y + j && Math.Abs(y + j) < MATRIX_WIDTH)
+                    {
+
+                        if( 1 < i && i < 6 || 1 < j && j < 6)
+                        {
+                            outputMatrix[x + i, y + j] = true;
+                        }
+                        else if ((i == 1 || i == 6) && (j == 1 || j == 6))
+                        {
+                            outputMatrix[x + i, y + j] = true;
+                        }
+                    }
+                }
+            }
+        }
+        private Point GridPositionCameraPoint(CameraSpacePoint point)
+        {
+            int x = (int)Math.Floor(point.X / matrixUnitInMeter);
+            int y = (int)Math.Floor(point.Y / matrixUnitInMeter);
+
+            x += (MATRIX_WIDTH / 2) + horizontalOffset;
+            y += (MATRIX_WIDTH / 2) + verticalOffset;
+
+            if (0 <= x && Math.Abs(x) < MATRIX_WIDTH && 0 <= y && Math.Abs(y) < MATRIX_WIDTH)
+            {
+                return new Point(x, y);
+            }
+            else
+            {
+                return new Point(0, 0);
+            }
+        }
+
         private void ResetMatrix()
         {
             for (int y = 0; y < MATRIX_WIDTH; y++)
@@ -310,10 +246,6 @@ namespace DancingTraficLight
                 }
             }
         }
-        
-        /// <summary>
-        /// Frissíti a Form-on megjelenített képet.
-        /// </summary>
         private void RefreshImage()
         {
             for (int y = 0; y < MATRIX_WIDTH; y++)
@@ -333,7 +265,6 @@ namespace DancingTraficLight
             outPutPicture.Image = matrixImage;
         }
         
-        #endregion
     }
 
 }
