@@ -44,8 +44,8 @@ namespace DancingTraficLight
             // ToDo - Remove test
             int test1X = 20;
             int test1Y = 10;
-            int test2X = 40;
-            int test2Y = 10;
+            int test2X = 10;
+            int test2Y = 20;
 
             //DrawLine(test1X, test1Y, test2X, test2Y, 2);
             DrawRectangle(new Point(test1X, test1Y), new Point(test2X, test2Y), 10);
@@ -88,43 +88,44 @@ namespace DancingTraficLight
 
         private void DrawBody(Body body)
         {
+            //DrawBone(joints, JointType.SpineMid, JointType.ShoulderRight);
+            //DrawBone(joints, JointType.SpineMid, JointType.ShoulderLeft);
+            //DrawBone(joints, JointType.ShoulderLeft, JointType.ShoulderRight);
+            //DrawBone(joints, JointType.HipRight, JointType.ShoulderRight, 3);
+            //DrawBone(joints, JointType.HipLeft, JointType.ShoulderLeft, );
+
             IReadOnlyDictionary<JointType, Joint> joints = body.Joints;
 
             //    // Head
             DrawCircle(joints[JointType.Head].Position, 8);
 
-            ////   // Torso
-            //DrawBone(joints, JointType.Neck, JointType.SpineShoulder, 2);                    // Neck
-            //DrawBone(joints, JointType.SpineShoulder, JointType.SpineMid, 8);           // Chest
-            //DrawBone(joints, JointType.SpineMid, JointType.SpineBase, 6);               // Hip
+            //   // Torso
+            DrawBone(joints, JointType.Neck, JointType.SpineShoulder, 4);                    // Neck
+            DrawBone(joints, JointType.SpineShoulder, JointType.SpineMid, 8);           // Chest
+            DrawBone(joints, JointType.SpineMid, JointType.SpineBase, 6);               // Hip
 
-            //DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderLeft);          // Left Shoulder
-            //DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderRight);         // Right Shoulder
+            DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderLeft, 2);          // Left Shoulder
+            DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderRight, 2);         // Right Shoulder
 
-            ////DrawBone(joints, JointType.SpineMid, JointType.ShoulderRight);
-            ////DrawBone(joints, JointType.SpineMid, JointType.ShoulderLeft);
-            ////DrawBone(joints, JointType.ShoulderLeft, JointType.ShoulderRight);
-            //DrawBone(joints, JointType.HipRight, JointType.ShoulderRight);
-            //DrawBone(joints, JointType.HipLeft, JointType.ShoulderLeft);
 
-            // Right Arm
-            //DrawBone(joints, JointType.ShoulderRight, JointType.ElbowRight, 4);           // Right Upper Arm
-            DrawBone(joints, JointType.ElbowRight, JointType.WristRight, 3);              // Right Lower Arm
-            //DrawBone(joints, JointType.WristRight, JointType.HandRight, 2);                  // Right Hand tip
+            //Right Arm
+            DrawBone(joints, JointType.ShoulderRight, JointType.ElbowRight);           // Right Upper Arm
+            DrawBone(joints, JointType.ElbowRight, JointType.WristRight);              // Right Lower Arm
+            DrawBone(joints, JointType.WristRight, JointType.HandRight);                  // Right Hand tip
 
-            //// Left Arm
-            //DrawBone(joints, JointType.ShoulderLeft, JointType.ElbowLeft, 4);             // Left Upper Arm
-            DrawBone(joints, JointType.ElbowLeft, JointType.WristLeft, 3);                // Left Lower Arm
-            //DrawBone(joints, JointType.WristLeft, JointType.HandLeft, 2);             // Left Hand tip
+            // Left Arm
+            DrawBone(joints, JointType.ShoulderLeft, JointType.ElbowLeft);             // Left Upper Arm
+            DrawBone(joints, JointType.ElbowLeft, JointType.WristLeft);                // Left Lower Arm
+            DrawBone(joints, JointType.WristLeft, JointType.HandLeft);             // Left Hand tip
 
-            //// Right Leg
-            //DrawBone(joints, JointType.HipRight, JointType.KneeRight);                 // Right Upper leg
-            //DrawBone(joints, JointType.KneeRight, JointType.AnkleRight);               // Right Lower leg
+            // Right Leg
+            DrawBone(joints, JointType.HipRight, JointType.KneeRight);                 // Right Upper leg
+            DrawBone(joints, JointType.KneeRight, JointType.AnkleRight);               // Right Lower leg
             //DrawBone(joints, JointType.AnkleRight, JointType.FootRight);                  // Right Feet
 
-            //// Left Leg
-            //DrawBone(joints, JointType.HipLeft, JointType.KneeLeft);                   // Left Upper leg
-            //DrawBone(joints, JointType.KneeLeft, JointType.AnkleLeft);                 // Left Lower leg
+            // Left Leg
+            DrawBone(joints, JointType.HipLeft, JointType.KneeLeft);                   // Left Upper leg
+            DrawBone(joints, JointType.KneeLeft, JointType.AnkleLeft);                 // Left Lower leg
             //DrawBone(joints, JointType.AnkleLeft, JointType.FootLeft);                    // Left Feet
         }
         private void DrawBone(IReadOnlyDictionary<JointType, Joint> joints, JointType jointType0, JointType jointType1, int lineWidth = 2)
@@ -167,7 +168,17 @@ namespace DancingTraficLight
             direction = Vector2.Normalize(direction);
 
             Vector2 perpendicular = new Vector2(direction.Y, -direction.X);
+            var angle = Math.Atan2(perpendicular.Y, perpendicular.X);
+            if (angle < 0)
+            {
+                angle += 2 * Math.PI;
+            }
+            angle = angle * 180 / Math.PI;
 
+            if ((20d < angle && angle < 70d) || (115d < angle && angle < 160d) ||(200d < angle && angle < 250d) || (290d < angle && angle < 340d))
+            {
+                width = (int)Math.Round(width * 0.708f);
+            }
             int firstWidth = width / 2;
             int secondWidth = width - firstWidth;
 
@@ -181,52 +192,43 @@ namespace DancingTraficLight
                     pointA.X - (int)Math.Round(perpendicular.X * firstWidth),
                     pointA.Y - (int)Math.Round(perpendicular.Y * secondWidth)
                 );
-            //Point pointE = new Point
-            //    (
-            //        pointB.X + (int)(perpendicular.X * width * 0.5f),
-            //        pointB.Y + (int)(perpendicular.Y * width * 0.5f)
-            //    );
-            //Point pointF = new Point
-            //    (
-            //        pointB.X + (int)(perpendicular.X * width * -0.5f),
-            //        pointB.Y + (int)(perpendicular.Y * width * -0.5f)
-            //    );
 
-            //if (pointC.X < pointD.X)
-            //{
-                CalculateRelativePositions(pointC.X, pointC.Y, pointD.X, pointD.Y);
-            //}
+            CalculateRelativePositions(pointC.X, pointC.Y, pointD.X, pointD.Y);
+
+            int yPlus = 0;
+
+            if (22.5d < angle && angle < 67.5d)
+            {
+                yPlus = 1;
+            }
+            else if (112.5 < angle && angle < 157.5d)
+            {
+                yPlus = -1;
+            }
+            else if (202.5d < angle && angle < 247.5d)
+            {
+                yPlus = -1;
+            }
+            else if (292.5 < angle && angle < 337.5d)
+            {
+                yPlus = 1;
+            }
+
+            DrawLine(pointA.X, pointA.Y, pointB.X, pointB.Y, yPlus);
+
+            //if ((22.5d < angle && angle < 67.5d) ||
+            //    (112.5 < angle && angle < 157.5d) ||
+            //    (202.5d < angle && angle < 247.5d) ||
+            //    (292.5 < angle && angle < 337.5d))
+            //    {
+            //        DrawLine(pointA.X, pointA.Y, pointB.X, pointB.Y, true);
+            //        Console.WriteLine(angle);
+            //    }
             //else
             //{
-            //    CalculateRelativePositions(pointD.X, pointD.Y, pointC.X, pointC.Y);
+            //    DrawLine(pointA.X, pointA.Y, pointB.X, pointB.Y, false);
             //}
 
-            //if (pointA.X < pointB.X)
-            //{
-
-            var angle = Math.Atan2(perpendicular.Y, perpendicular.X);
-            if (angle < 0)
-            {
-                angle += 2 * Math.PI;
-            }
-            angle = angle * 180 / Math.PI;
-
-            if (angle > 360 || angle < 0)
-            {
-                Console.WriteLine(angle);
-            }
-
-            if ((22.5d < angle  && angle < 67.5d)   || 
-                (135 < angle    && angle < 157.5d)  ||
-                (202.5d < angle && angle < 247.5d)  || 
-                (315 < angle    && angle < 337.5d))
-            {
-                DrawLine(pointA.X, pointA.Y, pointB.X, pointB.Y, true);
-            }
-            else
-            {
-                DrawLine(pointA.X, pointA.Y, pointB.X, pointB.Y, false);
-            }
             //}
             //else
             //{
@@ -278,7 +280,7 @@ namespace DancingTraficLight
                 }
             }
         }
-        public void DrawLine(int x, int y, int x2, int y2, bool shrink)
+        public void DrawLine(int x, int y, int x2, int y2, int yPlus)
         {
             int w = x2 - x;
             int h = y2 - y;
@@ -298,35 +300,14 @@ namespace DancingTraficLight
             int numerator = longest >> 1;
             for (int i = 0; i <= longest; i++)
             {
-                //DrawBox(x, y, lineWidth);
-
-                //ToDo - SetPixels to true for every relativePosition
-
                 SetMatrixValue(x, y);
 
-                //int shrinkOffsetX = 0;
-                //int shrinkOffsetY = 0;
-                //for (int j = 0; j < relativePositions.Count; j++)
-                //{
-
-                //    //if (shrink && j % 2 == 0)
-                //    //{
-                //    //    shrinkOffsetX = 1;
-                //    //    shrinkOffsetY = -1;
-                //    //}
-                //    //else
-                //    //{
-                //    //    shrinkOffsetX = 1;
-                //    //    shrinkOffsetY = 1;
-                //    //}
-                //    SetMatrixValue(x + relativePositions[j].X + shrinkOffsetX, y + relativePositions[j].Y + shrinkOffsetY);
-                //}
                 foreach (Point point in relativePositions)
                 {
                     SetMatrixValue(x + point.X, y + point.Y);
-                    if (shrink)
+                    if (yPlus != 0)
                     {
-                        SetMatrixValue(x + point.X, y + point.Y - 1);
+                        SetMatrixValue(x + point.X, y + point.Y + yPlus);
                     }
                 }
 
