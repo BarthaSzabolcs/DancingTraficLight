@@ -1,4 +1,5 @@
-﻿using Microsoft.Kinect;
+﻿using DancingTraficLight.Properties;
+using Microsoft.Kinect;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -16,8 +17,9 @@ namespace DancingTraficLight
         private Dictionary<JointType, Point> latestJointPositions;
 
         // World To Matrix parameters
+        const int SCALE_FACTOR = 16;
         const int MATRIX_WIDTH = 64;
-        bool[,] outputMatrix = new bool[MATRIX_WIDTH, MATRIX_WIDTH];
+        bool[,] outputMatrix = new bool[MATRIX_WIDTH , MATRIX_WIDTH];
         const float matrixUnitInMeter = /*0.033f;//*/0.038f;
         const int verticalOffset = -7;
         const int horizontalOffset = 0;
@@ -27,13 +29,15 @@ namespace DancingTraficLight
 
         // FormApp needs it
         Bitmap matrixImage = new Bitmap(MATRIX_WIDTH, MATRIX_WIDTH);
-        Color positiveColor = Color.FromArgb(255, 200, 0, 0);
-        Color negativeColor = Color.FromArgb(255, 0, 0, 0);
+        Color positiveColor = Color.DarkGoldenrod;//Color.FromArgb(255, 225, 0, 0);
+        Color negativeColor = Color.FromArgb(255, 35, 35, 35);
 
         public TraficLight()
         {
             InitializeComponent();
             InitializeKinect();
+
+            //outPutPicture.SizeMode = PictureBoxSizeMode.CenterImage;
 
             latestJointPositions = new Dictionary<JointType, Point>();
             foreach (var jointType in Enum.GetNames(typeof(JointType)))
@@ -48,7 +52,15 @@ namespace DancingTraficLight
             int test2Y = 20;
 
             //DrawLine(test1X, test1Y, test2X, test2Y, 2);
-            DrawRectangle(new Point(test1X, test1Y), new Point(test2X, test2Y), 10);
+            //DrawRectangle(new Point(test1X, test1Y), new Point(test2X, test2Y), 10);
+            DrawRectangle(new Point(14, 14), new Point(30, 30), 5);
+            DrawRectangle(new Point(50, 50), new Point(34, 34), 5);
+
+            DrawRectangle(new Point(27, 5), new Point(5, 27), 5);
+            DrawRectangle(new Point(37, 49), new Point(49, 37), 5);
+
+            DrawRectangle(new Point(40, 10), new Point(20, 10), 5);
+
             RefreshImage();
         }
         private void InitializeKinect()
@@ -96,11 +108,11 @@ namespace DancingTraficLight
 
             IReadOnlyDictionary<JointType, Joint> joints = body.Joints;
 
-            //    // Head
+            // Head
             DrawCircle(joints[JointType.Head].Position, 8);
 
-            //   // Torso
-            DrawBone(joints, JointType.Neck, JointType.SpineShoulder, 4);                    // Neck
+            // Torso
+            //DrawBone(joints, JointType.Neck, JointType.SpineShoulder, 4);                    // Neck
             DrawBone(joints, JointType.SpineShoulder, JointType.SpineMid, 8);           // Chest
             DrawBone(joints, JointType.SpineMid, JointType.SpineBase, 6);               // Hip
 
@@ -177,7 +189,7 @@ namespace DancingTraficLight
 
             if ((20d < angle && angle < 70d) || (115d < angle && angle < 160d) ||(200d < angle && angle < 250d) || (290d < angle && angle < 340d))
             {
-                width = (int)Math.Round(width * 0.708f);
+                width = (int)Math.Ceiling(width * 0.708f);
             }
             int firstWidth = width / 2;
             int secondWidth = width - firstWidth;
@@ -199,44 +211,32 @@ namespace DancingTraficLight
 
             if (22.5d < angle && angle < 67.5d)
             {
-                yPlus = 1;
+                // In Correct
+                yPlus = -1;
+                //DrawLine(pointA.X, pointA.Y, pointB.X, pointB.Y, yPlus);
             }
             else if (112.5 < angle && angle < 157.5d)
             {
+                // Correct
                 yPlus = -1;
+                //DrawLine(pointA.X, pointA.Y, pointB.X, pointB.Y, yPlus);
+
             }
             else if (202.5d < angle && angle < 247.5d)
             {
-                yPlus = -1;
+                // InCorrect
+                yPlus = 1;
+                //DrawLine(pointA.X, pointA.Y, pointB.X, pointB.Y, yPlus);
             }
             else if (292.5 < angle && angle < 337.5d)
             {
+                // Correct
                 yPlus = 1;
+                //DrawLine(pointA.X, pointA.Y, pointB.X, pointB.Y, yPlus);
             }
 
             DrawLine(pointA.X, pointA.Y, pointB.X, pointB.Y, yPlus);
 
-            //if ((22.5d < angle && angle < 67.5d) ||
-            //    (112.5 < angle && angle < 157.5d) ||
-            //    (202.5d < angle && angle < 247.5d) ||
-            //    (292.5 < angle && angle < 337.5d))
-            //    {
-            //        DrawLine(pointA.X, pointA.Y, pointB.X, pointB.Y, true);
-            //        Console.WriteLine(angle);
-            //    }
-            //else
-            //{
-            //    DrawLine(pointA.X, pointA.Y, pointB.X, pointB.Y, false);
-            //}
-
-            //}
-            //else
-            //{
-            //    DrawLine(pointB.X, pointB.Y, pointA.X, pointA.Y);
-            //}
-
-            //DrawLine(pointC.X, pointC.Y, pointD.X, pointD.Y, 2);
-            //DrawLine(pointE.X, pointE.Y, pointF.X, pointF.Y, 2);
         }
         private void CalculateRelativePositions(int x, int y, int x2, int y2)
         {
@@ -300,14 +300,21 @@ namespace DancingTraficLight
             int numerator = longest >> 1;
             for (int i = 0; i <= longest; i++)
             {
-                SetMatrixValue(x, y);
+                //foreach (Point point in relativePositions)
+                //{
+                //    SetMatrixValue(x + point.X, y + point.Y);
+                //    if (yPlus != 0)
+                //    {
+                //        SetMatrixValue(x + point.X, y + point.Y + yPlus);
+                //    }
+                //}
 
-                foreach (Point point in relativePositions)
+                for (int j = 0; j < relativePositions.Count; j++)
                 {
-                    SetMatrixValue(x + point.X, y + point.Y);
-                    if (yPlus != 0)
+                    SetMatrixValue(x + relativePositions[j].X, y + relativePositions[j].Y);
+                    if ((yPlus > 0 && j != relativePositions.Count - 1) || (yPlus < 0 && j != relativePositions.Count - 1))
                     {
-                        SetMatrixValue(x + point.X, y + point.Y + yPlus);
+                        SetMatrixValue(x + relativePositions[j].X, y + relativePositions[j].Y + yPlus);
                     }
                 }
 
@@ -376,6 +383,8 @@ namespace DancingTraficLight
                     }
                 }
             }
+            //Bitmap temp = new Bitmap(matrixImage, new Size(MATRIX_WIDTH * SCALE_FACTOR, MATRIX_WIDTH * SCALE_FACTOR));
+            //outPutPicture.Image = Overlap(temp, Resources._64x64);
             outPutPicture.Image = matrixImage;
         }
 
@@ -409,19 +418,17 @@ namespace DancingTraficLight
                 }
             }
         }
-        public void DrawBox(int x, int y, int width)
+
+        public static Image Overlap(Image source1, Image source2)
         {
-            for (int i = x - width / 2; i < x + width / 2; i++)
-            {
-                for (int j = y - width / 2; j < y + width / 2; j++)
-                {
-                    if (0 <= i && i < MATRIX_WIDTH && 0 <= j && j < MATRIX_WIDTH)
-                    {
-                        outputMatrix[i, j] = true;
-                    }
-                }
-            }
-        }  
+            var target = new Bitmap(source1.Width, source1.Height);
+            var graphics = Graphics.FromImage(target);
+
+            graphics.DrawImage(source1, 0, 0);
+            graphics.DrawImage(source2, 0, 0);
+
+            return target;
+        }
     }
 
 }
