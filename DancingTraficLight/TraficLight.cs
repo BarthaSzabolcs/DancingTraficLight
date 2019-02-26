@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Numerics;
 using System.Windows.Forms;
+using System.Linq;
 
 namespace DancingTraficLight
 {
@@ -45,21 +46,24 @@ namespace DancingTraficLight
                 latestJointPositions.Add((JointType)Enum.Parse(typeof(JointType), jointType), Point.Empty);
             }
 
-            // ToDo - Remove test
-            int test1X = 20;
-            int test1Y = 10;
-            int test2X = 10;
-            int test2Y = 20;
+            //// ToDo - Remove test
+            //int test1X = 20;
+            //int test1Y = 10;
+            //int test2X = 10;
+            //int test2Y = 20;
 
-            //DrawLine(test1X, test1Y, test2X, test2Y, 2);
-            //DrawRectangle(new Point(test1X, test1Y), new Point(test2X, test2Y), 10);
-            DrawRectangle(new Point(14, 14), new Point(30, 30), 5);
-            DrawRectangle(new Point(50, 50), new Point(34, 34), 5);
+            ////DrawLine(test1X, test1Y, test2X, test2Y, 2);
+            ////DrawRectangle(new Point(test1X, test1Y), new Point(test2X, test2Y), 10);
+            //DrawRectangle(new Point(14, 14), new Point(30, 30), 5);
+            //DrawRectangle(new Point(50, 50), new Point(34, 34), 5);
 
-            DrawRectangle(new Point(27, 5), new Point(5, 27), 5);
-            DrawRectangle(new Point(37, 49), new Point(49, 37), 5);
+            //DrawRectangle(new Point(27, 5), new Point(5, 27), 5);
+            //DrawRectangle(new Point(37, 49), new Point(49, 37), 5);
 
-            DrawRectangle(new Point(40, 10), new Point(20, 10), 5);
+            //DrawRectangle(new Point(40, 10), new Point(20, 10), 5);
+
+            //DrawRectangle(new Point(16, 0), new Point(32, 16), new Point(16, 32), new Point(0, 16));
+            DrawRectangle(new Point(60, 20), new Point(15, 12), new Point(50, 20), new Point(1, 8));
 
             RefreshImage();
         }
@@ -428,6 +432,102 @@ namespace DancingTraficLight
             graphics.DrawImage(source2, 0, 0);
 
             return target;
+        }
+
+        // Fresh code
+        private void CalculateLinePositions(Point pointA, Point pointB, ref List<Point> positions)
+        {
+            int x = pointA.X;
+            int y = pointA.Y;
+            int x2 = pointB.X;
+            int y2 = pointB.Y;
+
+            positions.Clear();
+
+            int w = x2 - x;
+            int h = y2 - y;
+            int dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0;
+            if (w < 0) dx1 = -1; else if (w > 0) dx1 = 1;
+            if (h < 0) dy1 = -1; else if (h > 0) dy1 = 1;
+            if (w < 0) dx2 = -1; else if (w > 0) dx2 = 1;
+            int longest = Math.Abs(w);
+            int shortest = Math.Abs(h);
+            if (!(longest > shortest))
+            {
+                longest = Math.Abs(h);
+                shortest = Math.Abs(w);
+                if (h < 0) dy2 = -1; else if (h > 0) dy2 = 1;
+                dx2 = 0;
+            }
+            int numerator = longest >> 1;
+            for (int i = 0; i <= longest; i++)
+            {
+                positions.Add(new Point(x, y));
+
+                numerator += shortest;
+                if (!(numerator < longest))
+                {
+                    numerator -= longest;
+                    x += dx1;
+                    y += dy1;
+                }
+                else
+                {
+                    x += dx2;
+                    y += dy2;
+                }
+            }
+        }
+
+        List<Point> line1 = new List<Point>();
+        List<Point> line2 = new List<Point>();
+        List<Point> line3 = new List<Point>();
+        List<Point> line4 = new List<Point>();
+        List<int> borders = new List<int>();
+
+        private void DrawRectangle(Point pointA, Point pointB, Point pointC, Point pointD)
+        {
+            CalculateLinePositions(pointA, pointB, ref line1);
+            CalculateLinePositions(pointB, pointC, ref line2);
+            CalculateLinePositions(pointC, pointD, ref line3);
+            CalculateLinePositions(pointD, pointA, ref line4);
+
+            for (int y = 0; y < 64; y++)
+            {
+                borders.Clear();
+
+                AddToBorders(line1, borders, y);
+                AddToBorders(line2, borders, y);
+                AddToBorders(line3, borders, y);
+                AddToBorders(line4, borders, y);
+
+                if (borders.Count != 0)
+                {
+                    int min = borders.Min();
+                    for (int x = borders.Min(); x <= borders.Max(); x++)
+                    {
+                        SetMatrixValue(x, y);
+                    }
+                }
+            }
+
+        }
+
+        private void AddToBorders(List<Point> listToEvaulate, List<int> listToStore, int y)
+        {
+
+            var min = (from point in listToEvaulate where point.Y == y select point.X);
+            var max = (from point in listToEvaulate where point.Y == y select point.X);
+
+            if (min.Any())
+            {
+                
+                listToStore.Add(min.Min());
+            }
+            if (max.Any())
+            {
+                listToStore.Add(max.Max());
+            }
         }
     }
 
