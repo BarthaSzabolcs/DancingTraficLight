@@ -24,16 +24,13 @@ namespace DancingTraficLight
 
         // Fields
         private bool[,] outputMatrix = new bool[MATRIX_WIDTH , MATRIX_WIDTH];
-        private List<Point> line1 = new List<Point>();
-        private List<Point> line2 = new List<Point>();
-        private List<Point> line3 = new List<Point>();
-        private List<Point> line4 = new List<Point>();
-        private List<int> borders = new List<int>();
+        private List<Point> linePositions = new List<Point>();
+        private int[] xValues = new int[2];
 
         // FormApp Only
         private Bitmap matrixImage = new Bitmap(MATRIX_WIDTH, MATRIX_WIDTH);
         private Color positiveColor = Color.DarkRed;//Color.FromArgb(255, 225, 0, 0);
-        private Color negativeColor = Color.DarkGray;//Color.FromArgb(255, 35, 35, 35);
+        private Color negativeColor = Color.Black;//Color.FromArgb(255, 35, 35, 35);
 
         public TraficLight()
         {
@@ -174,58 +171,46 @@ namespace DancingTraficLight
         {
             Point[] points = CalculateRectangleCorners(pointA, pointB, widthA, widthB);
 
-            CalculateLinePositions(points[0], points[1], line1);
-            CalculateLinePositions(points[1], points[2], line2);
-            CalculateLinePositions(points[2], points[3], line3);
-            CalculateLinePositions(points[3], points[0], line4);
+            linePositions.Clear();
 
-            int minY = (from point in points
-                      select point.Y).Min();
+            CalculateLinePositions(points[0], points[1], linePositions);
+            CalculateLinePositions(points[1], points[2], linePositions);
+            CalculateLinePositions(points[2], points[3], linePositions);
+            CalculateLinePositions(points[3], points[0], linePositions);
 
-            int maxY = (from point in points
-                       select point.Y).Max();
+            int minY = (from point in points select point.Y).Min();
+            int maxY = (from point in points select point.Y).Max();
 
             for (int y = minY ; y <= maxY; y++)
             {
-                borders.Clear();
+                FindXValues(linePositions, xValues, y);
 
-                AddToBorders(line1, borders, y);
-                AddToBorders(line2, borders, y);
-                AddToBorders(line3, borders, y);
-                AddToBorders(line4, borders, y);
-
-                if (borders.Count != 0)
+                for (int x = xValues[0]; x <= xValues[1]; x++)
                 {
-                    for (int x = borders.Min(); x <= borders.Max(); x++)
-                    {
-                        SetMatrixValue(x, y);
-                    }
+                    SetMatrixValue(x, y);
                 }
             }
         }
-        private void AddToBorders(List<Point> listToEvaulate, List<int> listToStore, int y)
+        private void FindXValues(List<Point> points, int[] xValues, int y)
         {
-            var min = (from point in listToEvaulate where point.Y == y select point.X);
-            var max = (from point in listToEvaulate where point.Y == y select point.X);
+            var minX = (from point in points where point.Y == y select point.X);
+            var maxX = (from point in points where point.Y == y select point.X);
 
-            if (min.Any())
+            if (minX.Any())
             {
-                
-                listToStore.Add(min.Min());
+                xValues[0] = minX.Min();
             }
-            if (max.Any())
+            if (maxX.Any())
             {
-                listToStore.Add(max.Max());
+                xValues[1] = maxX.Max();
             }
         }
-        private void CalculateLinePositions(Point pointA, Point pointB, List<Point> positions)
+        private void CalculateLinePositions(Point pointA, Point pointB, List<Point> linePositions)
         {
             int x = pointA.X;
             int y = pointA.Y;
             int x2 = pointB.X;
             int y2 = pointB.Y;
-
-            positions.Clear();
 
             int w = x2 - x;
             int h = y2 - y;
@@ -245,7 +230,7 @@ namespace DancingTraficLight
             int numerator = longest >> 1;
             for (int i = 0; i <= longest; i++)
             {
-                positions.Add(new Point(x, y));
+                linePositions.Add(new Point(x, y));
 
                 numerator += shortest;
                 if (!(numerator < longest))
@@ -264,7 +249,8 @@ namespace DancingTraficLight
         private Point[] CalculateRectangleCorners(Point pointA, Point pointB, int widthA, int widthB)
         {
             // Calculate the vector that points from PointA to PointB.
-            Vector2 direction = Vector2.Normalize(new Vector2(pointB.X - pointA.X, pointB.Y - pointA.Y));
+            Vector2 direction = new Vector2(pointB.X - pointA.X, pointB.Y - pointA.Y);
+            direction = Vector2.Normalize(direction);
 
             // Calculate a perpendicular Vector to the direction.
             Vector2 perpendicular = new Vector2(direction.Y, -direction.X);
