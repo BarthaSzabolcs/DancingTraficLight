@@ -13,9 +13,9 @@ namespace DancingTraficLight
     {
         // World To Matrix parameters
         const int MATRIX_WIDTH = 64;
-        const float matrixUnitInMeter = 0.033f; //0.038f;
-        const int verticalOffset = -7;
-        const int horizontalOffset = 0;
+        const float MATRIXUNIT_IN_METER = 0.033f; //0.038f;
+        const int VERTICAL_OFFSET = -7;
+        const int HORIZONTAL_OFFSET = 0;
 
         // Kinect
         private KinectSensor kinectSensor;
@@ -29,7 +29,6 @@ namespace DancingTraficLight
         private List<Point> line3 = new List<Point>();
         private List<Point> line4 = new List<Point>();
         private List<int> borders = new List<int>();
-        private Dictionary<JointType, Point> latestJointPositions;
 
         // FormApp Only
         private Bitmap matrixImage = new Bitmap(MATRIX_WIDTH, MATRIX_WIDTH);
@@ -41,20 +40,10 @@ namespace DancingTraficLight
             InitializeComponent();
             InitializeKinect();
 
-            latestJointPositions = new Dictionary<JointType, Point>();
-            foreach (var jointType in Enum.GetNames(typeof(JointType)))
-            {
-                latestJointPositions.Add((JointType)Enum.Parse(typeof(JointType), jointType), Point.Empty);
-            }
+            DrawRectangle(new Point(37, 49), new Point(49, 37), 0, 0);
 
-            //DrawRectangle(new Point(14, 14), new Point(30, 30), 5);
-            //DrawRectangle(new Point(50, 50), new Point(34, 34), 5);
-
-            //DrawRectangle(new Point(27, 5), new Point(5, 27), 5);
-            DrawRectangle(new Point(37, 49), new Point(49, 37), 2, 1);
-
-            DrawRectangle(new Point(40, 10), new Point(20, 10), 1, 2);
-            DrawRectangle(new Point(40, 20), new Point(20, 20), 2, 1);
+            DrawRectangle(new Point(40, 10), new Point(20, 10), 0, 0);
+            DrawRectangle(new Point(40, 20), new Point(20, 20), 0, 0);
 
             RefreshImage();
         }
@@ -100,34 +89,38 @@ namespace DancingTraficLight
 
             // Head
             DrawCircle(joints[JointType.Head].Position, 8);
+            
+            // Shoulders
+            DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderLeft, 2, 2);          // Left Shoulder
+            DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderRight, 2, 2);         // Right Shoulder
 
             // Torso 2.0
-            DrawBone(joints, JointType.SpineShoulder, JointType.SpineBase, 12, 8);               // Hip
+            DrawBone(joints, JointType.SpineShoulder, JointType.SpineBase, 10, 6);
 
-            //DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderLeft, 1);          // Left Shoulder
-            //DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderRight, 1);         // Right Shoulder
+            // Hip
+            DrawBone(joints, JointType.HipLeft, JointType.HipRight, 6);
 
-            //Right Arm
-            DrawBone(joints, JointType.ShoulderRight, JointType.ElbowRight, 4, 3);           // Right Upper Arm
-            DrawBone(joints, JointType.ElbowRight, JointType.WristRight);              // Right Lower Arm
-            //DrawBone(joints, JointType.WristRight, JointType.HandRight);                  // Right Hand tip
+            ////Right Arm
+            DrawBone(joints, JointType.ShoulderRight, JointType.ElbowRight, 3, 2);           // Right Upper Arm
+            DrawBone(joints, JointType.ElbowRight, JointType.WristRight, 2, 1);              // Right Lower Arm
+            DrawBone(joints, JointType.WristRight, JointType.HandRight, 1);                  // Right Hand tip
 
             // Left Arm
-            DrawBone(joints, JointType.ShoulderLeft, JointType.ElbowLeft, 4, 3);             // Left Upper Arm
-            DrawBone(joints, JointType.ElbowLeft, JointType.WristLeft);                // Left Lower Arm
-            //DrawBone(joints, JointType.WristLeft, JointType.HandLeft);             // Left Hand tip
+            DrawBone(joints, JointType.ShoulderLeft, JointType.ElbowLeft, 3, 2);             // Left Upper Arm
+            DrawBone(joints, JointType.ElbowLeft, JointType.WristLeft, 2, 1);                // Left Lower Arm
+            DrawBone(joints, JointType.WristLeft, JointType.HandLeft, 1);                   // Left Hand tip
 
             // Right Leg
-            DrawBone(joints, JointType.HipRight, JointType.KneeRight, 4, 3);                 // Right Upper leg
-            DrawBone(joints, JointType.KneeRight, JointType.AnkleRight);               // Right Lower leg
-            //DrawBone(joints, JointType.AnkleRight, JointType.FootRight);                  // Right Feet
+            DrawBone(joints, JointType.HipRight, JointType.KneeRight, 3, 2);                 // Right Upper leg
+            DrawBone(joints, JointType.KneeRight, JointType.AnkleRight, 2, 1);               // Right Lower leg
+            DrawBone(joints, JointType.AnkleRight, JointType.FootRight, 1);                  // Right Feet
 
             // Left Leg
-            DrawBone(joints, JointType.HipLeft, JointType.KneeLeft, 4, 3);                   // Left Upper leg
-            DrawBone(joints, JointType.KneeLeft, JointType.AnkleLeft);                 // Left Lower leg
-            //DrawBone(joints, JointType.AnkleLeft, JointType.FootLeft);                    // Left Feet
+            DrawBone(joints, JointType.HipLeft, JointType.KneeLeft, 3, 2);                   // Left Upper leg
+            DrawBone(joints, JointType.KneeLeft, JointType.AnkleLeft, 2, 1);                 // Left Lower leg
+            DrawBone(joints, JointType.AnkleLeft, JointType.FootLeft, 1);                    // Left Feet
         }
-        private void DrawBone(IReadOnlyDictionary<JointType, Joint> joints, JointType jointType0, JointType jointType1, int joint0_Width = 2)
+        private void DrawBone(IReadOnlyDictionary<JointType, Joint> joints, JointType jointType0, JointType jointType1, int joint0_Width)
         {
             DrawBone(joints, jointType0, jointType1, joint0_Width, joint0_Width);
         }
@@ -151,7 +144,7 @@ namespace DancingTraficLight
             Point point2 = GridPositionFromCameraPoint(point);
 
             int x = point2.X;
-            int y = point2.Y;
+            int y = point2.Y + 2;
 
             x -= diameter / 2;
             y -= 1 + diameter / 2;
@@ -181,10 +174,10 @@ namespace DancingTraficLight
         {
             Point[] points = CalculateRectangleCorners(pointA, pointB, widthA, widthB);
 
-            CalculateLinePositions(points[0], points[1], ref line1);
-            CalculateLinePositions(points[1], points[2], ref line2);
-            CalculateLinePositions(points[2], points[3], ref line3);
-            CalculateLinePositions(points[3], points[0], ref line4);
+            CalculateLinePositions(points[0], points[1], line1);
+            CalculateLinePositions(points[1], points[2], line2);
+            CalculateLinePositions(points[2], points[3], line3);
+            CalculateLinePositions(points[3], points[0], line4);
 
             int minY = (from point in points
                       select point.Y).Min();
@@ -209,7 +202,6 @@ namespace DancingTraficLight
                     }
                 }
             }
-
         }
         private void AddToBorders(List<Point> listToEvaulate, List<int> listToStore, int y)
         {
@@ -226,7 +218,7 @@ namespace DancingTraficLight
                 listToStore.Add(max.Max());
             }
         }
-        private void CalculateLinePositions(Point pointA, Point pointB, ref List<Point> positions)
+        private void CalculateLinePositions(Point pointA, Point pointB, List<Point> positions)
         {
             int x = pointA.X;
             int y = pointA.Y;
@@ -271,19 +263,17 @@ namespace DancingTraficLight
         }
         private Point[] CalculateRectangleCorners(Point pointA, Point pointB, int widthA, int widthB)
         {
-            Vector2 direction = new Vector2(pointB.X - pointA.X, pointB.Y - pointA.Y);
-            direction = Vector2.Normalize(direction);
+            // Calculate the vector that points from PointA to PointB.
+            Vector2 direction = Vector2.Normalize(new Vector2(pointB.X - pointA.X, pointB.Y - pointA.Y));
 
+            // Calculate a perpendicular Vector to the direction.
             Vector2 perpendicular = new Vector2(direction.Y, -direction.X);
 
-            
             int widthA_1 = widthA / 2;
             int widthA_2 = widthA - widthA_1;
 
             int widthB_1 = widthB / 2;
             int widthB_2 = widthB - widthB_1;
-
-            //Console.WriteLine(string.Format("widthA_1: {0}, widthA_2: {1}, widthB_1: {2}, widthB_2: {3}", widthA_1, widthA_2, widthB_1, widthB_2));
 
             Point pointC = new Point
                 (
@@ -297,26 +287,32 @@ namespace DancingTraficLight
                 );
             Point pointE = new Point
                 (
-                    pointB.X - (int)Math.Round(perpendicular.X * widthB_1),
-                    pointB.Y - (int)Math.Round(perpendicular.Y * widthB_1)
+                    pointB.X - (int)Math.Round(perpendicular.X * widthB_2),
+                    pointB.Y - (int)Math.Round(perpendicular.Y * widthB_2)
                 );
             Point pointF = new Point
                 (
-                    pointB.X + (int)Math.Round(perpendicular.X * widthB_2),
-                    pointB.Y + (int)Math.Round(perpendicular.Y * widthB_2)
+                    pointB.X + (int)Math.Round(perpendicular.X * widthB_1),
+                    pointB.Y + (int)Math.Round(perpendicular.Y * widthB_1)
                 );
+
+            //Console.WriteLine(string.Format("widthA_1: {0}, widthA_2: {1}, widthB_1: {2}, widthB_2: {3}", widthA_1, widthA_2, widthB_1, widthB_2));
+            //Console.WriteLine(string.Format("widthA_1: {0}, widthA_2: {1}, widthB_1: {2}, widthB_2: {3}", pointC, pointB, pointC, pointD));
 
             return new Point[]{ pointC, pointD, pointE, pointF};
         }
 
         private Point GridPositionFromCameraPoint(CameraSpacePoint point)
         {
-            int x = (int)Math.Floor(point.X / matrixUnitInMeter);
-            int y = (int)Math.Floor(point.Y / matrixUnitInMeter);
+            // Scale up/down the x and y values to match the scale of our coordinate system.
+            int x = (int)Math.Round(point.X / MATRIXUNIT_IN_METER);
+            int y = (int)Math.Round(point.Y / MATRIXUNIT_IN_METER);
 
-            x += (MATRIX_WIDTH / 2) + horizontalOffset;
-            y += (MATRIX_WIDTH / 2) + verticalOffset;
+            // Align the Kinect coordiante system with ours.
+            x += (MATRIX_WIDTH / 2) + HORIZONTAL_OFFSET;
+            y += (MATRIX_WIDTH / 2) + VERTICAL_OFFSET;
 
+            // If the coordinate is valid return it, else return (0, 0).
             if (0 <= x && Math.Abs(x) < MATRIX_WIDTH && 0 <= y && Math.Abs(y) < MATRIX_WIDTH)
             {
                 return new Point(x, y);
@@ -361,6 +357,20 @@ namespace DancingTraficLight
                     }
                 }
             }
+            
+            //ToDo: Faster SetPixel (it's clearly the bottleneck now) - Use the code bellow
+
+            //BitmapData BtmpDt = a.LockBits(new Rectangle(0, 0, btm.Width, btm.Height), ImageLockMode.ReadWrite, btm.PixelFormat);
+            //IntPtr pointer = BtmDt.Scan0;
+            //int size = Math.Abs(BtmDt.Stride) * btm.Height;
+            //byte[] pixels = new byte[size];
+            //Marshal.Copy(pointer, pixels, 0, size);
+            //for (int b = 0; b < pixels.Length; b++)
+            //{
+            //    pixels[b] = 255;// do something here 
+            //}
+            //Marshal.Copy(pixels, 0, pointer, size);
+            //btm.UnlockBits(BtmDt);
 
             outPutPicture.Image = matrixImage;
         }
