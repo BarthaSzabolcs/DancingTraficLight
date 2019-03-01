@@ -6,16 +6,17 @@ using System.Drawing;
 using System.Numerics;
 using System.Windows.Forms;
 using System.Linq;
+using DancingTraficLight.ExtensionMethods;
 
 namespace DancingTraficLight
 {
     public partial class TraficLight : Form
     {
         // World To Matrix parameters
-        const int MATRIX_WIDTH = 64;
-        const float MATRIXUNIT_IN_METER = 0.033f; //0.038f;
-        const int VERTICAL_OFFSET = -7;
-        const int HORIZONTAL_OFFSET = 0;
+        public const int MATRIX_WIDTH = 64;
+        public const float MATRIXUNIT_IN_METER = 0.033f; //0.038f;
+        public const int VERTICAL_OFFSET = -7;
+        public const int HORIZONTAL_OFFSET = 0;
 
         // Kinect
         private KinectSensor kinectSensor;
@@ -37,12 +38,12 @@ namespace DancingTraficLight
             InitializeComponent();
             InitializeKinect();
 
-            DrawRectangle(new Point(37, 49), new Point(49, 37), 0, 0);
+            //DrawRectangle(new Point(37, 49), new Point(49, 37), 0, 0);
 
-            DrawRectangle(new Point(40, 10), new Point(20, 10), 0, 0);
-            DrawRectangle(new Point(40, 20), new Point(20, 20), 0, 0);
+            //DrawRectangle(new Point(40, 10), new Point(20, 10), 0, 0);
+            //DrawRectangle(new Point(40, 20), new Point(20, 20), 0, 0);
 
-            RefreshImage();
+            //RefreshImage();
         }
         private void InitializeKinect()
         {
@@ -86,12 +87,12 @@ namespace DancingTraficLight
 
             // Head
             DrawCircle(joints[JointType.Head].Position, 8);
-            
+
             // Shoulders
             DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderLeft, 2, 2);          // Left Shoulder
             DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderRight, 2, 2);         // Right Shoulder
 
-            // Torso 2.0
+            //Torso 2.0
             DrawBone(joints, JointType.SpineShoulder, JointType.SpineBase, 10, 6);
 
             // Hip
@@ -132,13 +133,13 @@ namespace DancingTraficLight
                 return;
             }
             
-            DrawRectangle(GridPositionFromCameraPoint(joint0.Position), GridPositionFromCameraPoint(joint1.Position), joint0_Width, joint1_Width);
+            DrawRectangle(joint0.Position, joint1.Position, joint0_Width, joint1_Width);
         }
 
         private void DrawCircle(CameraSpacePoint point, int diameter)
         {
             //ToDo - DrawCircle: rewrite
-            Point point2 = GridPositionFromCameraPoint(point);
+            Point point2 = point.ToGridPosition();
 
             int x = point2.X;
             int y = point2.Y + 2;
@@ -167,7 +168,7 @@ namespace DancingTraficLight
             }
         }
 
-        private void DrawRectangle(Point pointA, Point pointB, int widthA, int widthB)
+        private void DrawRectangle(CameraSpacePoint pointA, CameraSpacePoint pointB, int widthA, int widthB)
         {
             Point[] points = CalculateRectangleCorners(pointA, pointB, widthA, widthB);
 
@@ -246,7 +247,7 @@ namespace DancingTraficLight
                 }
             }
         }
-        private Point[] CalculateRectangleCorners(Point pointA, Point pointB, int widthA, int widthB)
+        private Point[] CalculateRectangleCorners(CameraSpacePoint pointA, CameraSpacePoint pointB, int widthA, int widthB)
         {
             // Calculate the vector that points from PointA to PointB.
             Vector2 direction = new Vector2(pointB.X - pointA.X, pointB.Y - pointA.Y);
@@ -255,59 +256,39 @@ namespace DancingTraficLight
             // Calculate a perpendicular Vector to the direction.
             Vector2 perpendicular = new Vector2(direction.Y, -direction.X);
 
-            int widthA_1 = widthA / 2;
-            int widthA_2 = widthA - widthA_1;
+            float correctedWidthA = widthA * MATRIXUNIT_IN_METER;
+            float correctedWidthB = widthB * MATRIXUNIT_IN_METER;
 
-            int widthB_1 = widthB / 2;
-            int widthB_2 = widthB - widthB_1;
+            CameraSpacePoint pointC = new CameraSpacePoint
+            {
+                X = pointA.X + perpendicular.X * (correctedWidthA / 2),
+                Y = pointA.Y + perpendicular.Y * (correctedWidthA / 2)
+            };
+            CameraSpacePoint pointD = new CameraSpacePoint
+            {
+                X = pointA.X - perpendicular.X * (correctedWidthA / 2),
+                Y = pointA.Y - perpendicular.Y * (correctedWidthA / 2)
+            };
+            CameraSpacePoint pointE = new CameraSpacePoint
+            {
+                X = pointB.X - perpendicular.X * (correctedWidthB / 2),
+                Y = pointB.Y - perpendicular.Y * (correctedWidthB / 2)
+            };
+            CameraSpacePoint pointF = new CameraSpacePoint
+            {
+                X = pointB.X + perpendicular.X * (correctedWidthB / 2),
+                Y = pointB.Y + perpendicular.Y * (correctedWidthB / 2)
+            };
 
-            Point pointC = new Point
-                (
-                    pointA.X + (int)Math.Round(perpendicular.X * widthA_1),
-                    pointA.Y + (int)Math.Round(perpendicular.Y * widthA_1)
-                );
-            Point pointD = new Point
-                (
-                    pointA.X - (int)Math.Round(perpendicular.X * widthA_2),
-                    pointA.Y - (int)Math.Round(perpendicular.Y * widthA_2)
-                );
-            Point pointE = new Point
-                (
-                    pointB.X - (int)Math.Round(perpendicular.X * widthB_2),
-                    pointB.Y - (int)Math.Round(perpendicular.Y * widthB_2)
-                );
-            Point pointF = new Point
-                (
-                    pointB.X + (int)Math.Round(perpendicular.X * widthB_1),
-                    pointB.Y + (int)Math.Round(perpendicular.Y * widthB_1)
-                );
-
-            //Console.WriteLine(string.Format("widthA_1: {0}, widthA_2: {1}, widthB_1: {2}, widthB_2: {3}", widthA_1, widthA_2, widthB_1, widthB_2));
-            //Console.WriteLine(string.Format("widthA_1: {0}, widthA_2: {1}, widthB_1: {2}, widthB_2: {3}", pointC, pointB, pointC, pointD));
-
-            return new Point[]{ pointC, pointD, pointE, pointF};
+            return new Point[]
+            {
+                pointC.ToGridPosition(),
+                pointD.ToGridPosition(),
+                pointE.ToGridPosition(),
+                pointF.ToGridPosition()
+            };
         }
 
-        private Point GridPositionFromCameraPoint(CameraSpacePoint point)
-        {
-            // Scale up/down the x and y values to match the scale of our coordinate system.
-            int x = (int)Math.Round(point.X / MATRIXUNIT_IN_METER);
-            int y = (int)Math.Round(point.Y / MATRIXUNIT_IN_METER);
-
-            // Align the Kinect coordiante system with ours.
-            x += (MATRIX_WIDTH / 2) + HORIZONTAL_OFFSET;
-            y += (MATRIX_WIDTH / 2) + VERTICAL_OFFSET;
-
-            // If the coordinate is valid return it, else return (0, 0).
-            if (0 <= x && Math.Abs(x) < MATRIX_WIDTH && 0 <= y && Math.Abs(y) < MATRIX_WIDTH)
-            {
-                return new Point(x, y);
-            }
-            else
-            {
-                return new Point(0, 0);
-            }
-        }
         private void SetMatrixValue(int x, int y, bool value = true)
         {
             if (0 <= x && x < MATRIX_WIDTH && 0 <= y && y < MATRIX_WIDTH)
@@ -360,6 +341,5 @@ namespace DancingTraficLight
 
             outPutPicture.Image = matrixImage;
         }
-
     }
 }
