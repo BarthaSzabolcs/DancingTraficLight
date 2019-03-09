@@ -26,6 +26,7 @@ namespace DancingTraficLight
         // Fields
         private bool[,] outputMatrix = new bool[MATRIX_WIDTH , MATRIX_WIDTH];
         private List<Point> linePositions = new List<Point>();
+        private List<Point> circlePositions = new List<Point>();
         private int[] xValues = new int[2];
 
         // FormApp Only
@@ -38,12 +39,11 @@ namespace DancingTraficLight
             InitializeComponent();
             InitializeKinect();
 
-            //DrawRectangle(new Point(37, 49), new Point(49, 37), 0, 0);
+            CameraSpacePoint centerPoint = new CameraSpacePoint();
 
-            //DrawRectangle(new Point(40, 10), new Point(20, 10), 0, 0);
-            //DrawRectangle(new Point(40, 20), new Point(20, 20), 0, 0);
+            DrawCircle(centerPoint, 16);
 
-            //RefreshImage();
+            RefreshImage();
         }
         private void InitializeKinect()
         {
@@ -86,43 +86,44 @@ namespace DancingTraficLight
             IReadOnlyDictionary<JointType, Joint> joints = body.Joints;
 
             // Head
-            DrawCircle(joints[JointType.Head].Position, 8);
+            DrawCircle(joints[JointType.Head].Position, 4);
 
-            // Shoulders
-            DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderLeft, 2, 2);          // Left Shoulder
-            DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderRight, 2, 2);         // Right Shoulder
+            ////Shoulders
+            //DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderLeft, 2, 2);          // Left Shoulder
+            //DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderRight, 2, 2);         // Right Shoulder
 
-            //Torso 2.0
-            DrawBone(joints, JointType.SpineShoulder, JointType.SpineBase, 10, 6);
+            ////Torso 2.1
+            //DrawBone(joints, JointType.SpineMid, JointType.SpineShoulder, 10, 6);
+            //DrawBone(joints, JointType.SpineBase, JointType.SpineMid, 6, 10);
 
-            // Hip
-            DrawBone(joints, JointType.HipLeft, JointType.HipRight, 6);
+            //// Hip
+            //DrawBone(joints, JointType.HipLeft, JointType.HipRight, 6);
 
-            ////Right Arm
-            DrawBone(joints, JointType.ShoulderRight, JointType.ElbowRight, 3, 2);           // Right Upper Arm
-            DrawBone(joints, JointType.ElbowRight, JointType.WristRight, 2, 1);              // Right Lower Arm
-            DrawBone(joints, JointType.WristRight, JointType.HandRight, 1);                  // Right Hand tip
+            //////Right Arm
+            //DrawBone(joints, JointType.ShoulderRight, JointType.ElbowRight, 3, 2);           // Right Upper Arm
+            //DrawBone(joints, JointType.ElbowRight, JointType.WristRight, 2, 1);              // Right Lower Arm
+            //DrawBone(joints, JointType.WristRight, JointType.HandRight, 1);                  // Right Hand tip
 
-            // Left Arm
-            DrawBone(joints, JointType.ShoulderLeft, JointType.ElbowLeft, 3, 2);             // Left Upper Arm
+            //// Left Arm
+            //DrawBone(joints, JointType.ShoulderLeft, JointType.ElbowLeft, 3, 2);             // Left Upper Arm
             DrawBone(joints, JointType.ElbowLeft, JointType.WristLeft, 2, 1);                // Left Lower Arm
-            DrawBone(joints, JointType.WristLeft, JointType.HandLeft, 1);                   // Left Hand tip
+            //DrawBone(joints, JointType.WristLeft, JointType.HandLeft, 1);                   // Left Hand tip
 
-            // Right Leg
-            DrawBone(joints, JointType.HipRight, JointType.KneeRight, 3, 2);                 // Right Upper leg
-            DrawBone(joints, JointType.KneeRight, JointType.AnkleRight, 2, 1);               // Right Lower leg
-            DrawBone(joints, JointType.AnkleRight, JointType.FootRight, 1);                  // Right Feet
+            //// Right Leg
+            //DrawBone(joints, JointType.HipRight, JointType.KneeRight, 3, 2);                 // Right Upper leg
+            //DrawBone(joints, JointType.KneeRight, JointType.AnkleRight, 2, 1);               // Right Lower leg
+            //DrawBone(joints, JointType.AnkleRight, JointType.FootRight, 1);                  // Right Feet
 
-            // Left Leg
-            DrawBone(joints, JointType.HipLeft, JointType.KneeLeft, 3, 2);                   // Left Upper leg
-            DrawBone(joints, JointType.KneeLeft, JointType.AnkleLeft, 2, 1);                 // Left Lower leg
-            DrawBone(joints, JointType.AnkleLeft, JointType.FootLeft, 1);                    // Left Feet
+            //// Left Leg
+            //DrawBone(joints, JointType.HipLeft, JointType.KneeLeft, 3, 2);                   // Left Upper leg
+            //DrawBone(joints, JointType.KneeLeft, JointType.AnkleLeft, 2, 1);                 // Left Lower leg
+            //DrawBone(joints, JointType.AnkleLeft, JointType.FootLeft, 1);                    // Left Feet
         }
-        private void DrawBone(IReadOnlyDictionary<JointType, Joint> joints, JointType jointType0, JointType jointType1, int joint0_Width)
+        private void DrawBone(IReadOnlyDictionary<JointType, Joint> joints, JointType jointType0, JointType jointType1, int joint0_width)
         {
-            DrawBone(joints, jointType0, jointType1, joint0_Width, joint0_Width);
+            DrawBone(joints, jointType0, jointType1, joint0_width, joint0_width);
         }
-        private void DrawBone(IReadOnlyDictionary<JointType, Joint> joints, JointType jointType0, JointType jointType1, int joint0_Width, int joint1_Width)
+        private void DrawBone(IReadOnlyDictionary<JointType, Joint> joints, JointType jointType0, JointType jointType1, int joint0_width, int joint1_width)
         {
             Joint joint0 = joints[jointType0];
             Joint joint1 = joints[jointType1];
@@ -133,39 +134,7 @@ namespace DancingTraficLight
                 return;
             }
             
-            DrawRectangle(joint0.Position, joint1.Position, joint0_Width, joint1_Width);
-        }
-
-        private void DrawCircle(CameraSpacePoint point, int diameter)
-        {
-            //ToDo - DrawCircle: rewrite
-            Point point2 = point.ToGridPosition();
-
-            int x = point2.X;
-            int y = point2.Y + 2;
-
-            x -= diameter / 2;
-            y -= 1 + diameter / 2;
-
-            //Jelenleg csak diameter = 8 esetén működik megfelelően
-            for ( var i = 0; i < diameter; i++ )
-            {
-                for ( var j = 0; j < diameter; j++ )
-                {
-                    if (0 <= x + i && Math.Abs(x + i) < MATRIX_WIDTH && 0 <= y + j && Math.Abs(y + j) < MATRIX_WIDTH)
-                    {
-
-                        if( 1 < i && i < 6 || 1 < j && j < 6)
-                        {
-                            outputMatrix[x + i, y + j] = true;
-                        }
-                        else if ((i == 1 || i == 6) && (j == 1 || j == 6))
-                        {
-                            outputMatrix[x + i, y + j] = true;
-                        }
-                    }
-                }
-            }
+            DrawRectangle(joint0.Position, joint1.Position, joint0_width, joint1_width);
         }
 
         private void DrawRectangle(CameraSpacePoint pointA, CameraSpacePoint pointB, int widthA, int widthB)
@@ -192,6 +161,24 @@ namespace DancingTraficLight
                 }
             }
         }
+        private void DrawCircle(CameraSpacePoint pointA, int radius)
+        {
+            linePositions.Clear();
+
+            Point centerPoint = pointA.ToGridPosition();
+            centerPoint.CalculateCircle(radius, linePositions);
+
+            for (int y = centerPoint.Y - radius; y <= centerPoint.Y + radius; y++)
+            {
+                FindXValues(linePositions, xValues, y);
+
+                for (int x = xValues[0]; x <= xValues[1]; x++)
+                {
+                    SetMatrixValue(x, y);
+                }
+            }
+        }
+
         private void FindXValues(List<Point> points, int[] xValues, int y)
         {
             var minX = (from point in points where point.Y == y select point.X);
@@ -280,13 +267,21 @@ namespace DancingTraficLight
                 Y = pointB.Y + perpendicular.Y * (correctedWidthB / 2)
             };
 
-            return new Point[]
+            Point[] points = new Point[]
             {
                 pointC.ToGridPosition(),
                 pointD.ToGridPosition(),
                 pointE.ToGridPosition(),
                 pointF.ToGridPosition()
             };
+
+            //points[0].CalculateCircle(widthA, circlePositions);
+            //points[1] = points[1].NearestPoint(circlePositions);
+
+            //points[2].CalculateCircle(widthB, circlePositions);
+            //points[3] = points[3].NearestPoint(circlePositions);
+
+            return points;
         }
 
         private void SetMatrixValue(int x, int y, bool value = true)
