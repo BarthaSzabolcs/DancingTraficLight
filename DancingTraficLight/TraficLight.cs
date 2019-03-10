@@ -41,7 +41,7 @@ namespace DancingTraficLight
 
             CameraSpacePoint centerPoint = new CameraSpacePoint();
 
-            DrawCircle(centerPoint, 16);
+            DrawCircle(centerPoint, 3);
 
             RefreshImage();
         }
@@ -93,30 +93,30 @@ namespace DancingTraficLight
             //DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderRight, 2, 2);         // Right Shoulder
 
             ////Torso 2.1
-            //DrawBone(joints, JointType.SpineMid, JointType.SpineShoulder, 10, 6);
+            //DrawBone(joints, JointType.SpineMid, JointType.SpineShoulder, 10, 8);
             //DrawBone(joints, JointType.SpineBase, JointType.SpineMid, 6, 10);
 
-            //// Hip
+            // Hip
             //DrawBone(joints, JointType.HipLeft, JointType.HipRight, 6);
 
-            //////Right Arm
-            //DrawBone(joints, JointType.ShoulderRight, JointType.ElbowRight, 3, 2);           // Right Upper Arm
-            //DrawBone(joints, JointType.ElbowRight, JointType.WristRight, 2, 1);              // Right Lower Arm
+            ////Right Arm
+            DrawBone(joints, JointType.ShoulderRight, JointType.ElbowRight, 3/*, 2*/);           // Right Upper Arm
+            DrawBone(joints, JointType.ElbowRight, JointType.WristRight, 3/*, 2*/);              // Right Lower Arm
             //DrawBone(joints, JointType.WristRight, JointType.HandRight, 1);                  // Right Hand tip
 
-            //// Left Arm
-            //DrawBone(joints, JointType.ShoulderLeft, JointType.ElbowLeft, 3, 2);             // Left Upper Arm
-            DrawBone(joints, JointType.ElbowLeft, JointType.WristLeft, 2, 1);                // Left Lower Arm
+            // Left Arm
+            DrawBone(joints, JointType.ShoulderLeft, JointType.ElbowLeft, 3/*, 2*/);             // Left Upper Arm
+            DrawBone(joints, JointType.ElbowLeft, JointType.WristLeft, 3/*, 1*/);                // Left Lower Arm
             //DrawBone(joints, JointType.WristLeft, JointType.HandLeft, 1);                   // Left Hand tip
 
-            //// Right Leg
-            //DrawBone(joints, JointType.HipRight, JointType.KneeRight, 3, 2);                 // Right Upper leg
-            //DrawBone(joints, JointType.KneeRight, JointType.AnkleRight, 2, 1);               // Right Lower leg
+            // Right Leg
+            DrawBone(joints, JointType.HipRight, JointType.KneeRight, 3/*, 2*/);                 // Right Upper leg
+            DrawBone(joints, JointType.KneeRight, JointType.AnkleRight, 3/*, 1*/);               // Right Lower leg
             //DrawBone(joints, JointType.AnkleRight, JointType.FootRight, 1);                  // Right Feet
 
-            //// Left Leg
-            //DrawBone(joints, JointType.HipLeft, JointType.KneeLeft, 3, 2);                   // Left Upper leg
-            //DrawBone(joints, JointType.KneeLeft, JointType.AnkleLeft, 2, 1);                 // Left Lower leg
+            // Left Leg
+            DrawBone(joints, JointType.HipLeft, JointType.KneeLeft, 3/*, 2*/);                   // Left Upper leg
+            DrawBone(joints, JointType.KneeLeft, JointType.AnkleLeft, 3/*, 1*/);                 // Left Lower leg
             //DrawBone(joints, JointType.AnkleLeft, JointType.FootLeft, 1);                    // Left Feet
         }
         private void DrawBone(IReadOnlyDictionary<JointType, Joint> joints, JointType jointType0, JointType jointType1, int joint0_width)
@@ -248,31 +248,45 @@ namespace DancingTraficLight
 
             CameraSpacePoint pointC = new CameraSpacePoint
             {
-                X = pointA.X + perpendicular.X * (correctedWidthA / 2),
-                Y = pointA.Y + perpendicular.Y * (correctedWidthA / 2)
-            };
-            CameraSpacePoint pointD = new CameraSpacePoint
-            {
                 X = pointA.X - perpendicular.X * (correctedWidthA / 2),
                 Y = pointA.Y - perpendicular.Y * (correctedWidthA / 2)
+            };
+            //CameraSpacePoint pointD = new CameraSpacePoint
+            //{
+            //    X = pointA.X + perpendicular.X * (correctedWidthA / 2),
+            //    Y = pointA.Y + perpendicular.Y * (correctedWidthA / 2)
+            //};
+
+            CameraSpacePoint poinC_rounded = pointC.ToGridPosition().ToCameraSpacePoint();
+            CameraSpacePoint pointD = new CameraSpacePoint
+            {
+                X = poinC_rounded.X + perpendicular.X *correctedWidthA,
+                Y = poinC_rounded.Y + perpendicular.Y * correctedWidthA
             };
             CameraSpacePoint pointE = new CameraSpacePoint
             {
                 X = pointB.X - perpendicular.X * (correctedWidthB / 2),
                 Y = pointB.Y - perpendicular.Y * (correctedWidthB / 2)
             };
+            //CameraSpacePoint pointF = new CameraSpacePoint
+            //{
+            //    X = pointB.X + perpendicular.X * (correctedWidthB / 2),
+            //    Y = pointB.Y + perpendicular.Y * (correctedWidthB / 2)
+            //};
+
+            CameraSpacePoint poinE_rounded = pointE.ToGridPosition().ToCameraSpacePoint();
             CameraSpacePoint pointF = new CameraSpacePoint
             {
-                X = pointB.X + perpendicular.X * (correctedWidthB / 2),
-                Y = pointB.Y + perpendicular.Y * (correctedWidthB / 2)
+                X = poinE_rounded.X + perpendicular.X * correctedWidthB,
+                Y = poinE_rounded.Y + perpendicular.Y * correctedWidthB
             };
 
             Point[] points = new Point[]
             {
                 pointC.ToGridPosition(),
                 pointD.ToGridPosition(),
-                pointE.ToGridPosition(),
-                pointF.ToGridPosition()
+                pointF.ToGridPosition(),
+                pointE.ToGridPosition()
             };
 
             //points[0].CalculateCircle(widthA, circlePositions);

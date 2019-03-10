@@ -27,8 +27,22 @@ namespace DancingTraficLight.ExtensionMethods
             }
             else
             {
-                return new Point(0, 0);
+                return new Point(-1, -1);
             }
+        }
+        public static CameraSpacePoint ToCameraSpacePoint(this Point point)
+        {
+            float x = point.X - TraficLight.HORIZONTAL_OFFSET - TraficLight.MATRIX_WIDTH / 2;
+            float y = point.Y - TraficLight.VERTICAL_OFFSET - TraficLight.MATRIX_WIDTH / 2;
+
+            x = x * TraficLight.MATRIXUNIT_IN_METER;
+            y = y * TraficLight.MATRIXUNIT_IN_METER;
+
+            return new CameraSpacePoint()
+            {
+                X = x,
+                Y = y
+            };
         }
         public static Point CalculateCorrection(this Point pointA, Point pointB, int desiredDistance)
         {
