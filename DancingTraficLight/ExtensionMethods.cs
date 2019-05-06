@@ -20,15 +20,27 @@ namespace DancingTraficLight.ExtensionMethods
             x += (TraficLight.MATRIX_WIDTH / 2) + TraficLight.HORIZONTAL_OFFSET;
             y += (TraficLight.MATRIX_WIDTH / 2) + TraficLight.VERTICAL_OFFSET;
 
-            // If the coordinate is valid return it, else return (0, 0).
-            if (0 <= x && Math.Abs(x) < TraficLight.MATRIX_WIDTH && 0 <= y && Math.Abs(y) < TraficLight.MATRIX_WIDTH)
+            // Clamp x to the edge of the matrix, if needed.
+            if (x < 0)
             {
-                return new Point(x, y);
+                x = 0;
             }
-            else
+            else if(x > TraficLight.MATRIX_WIDTH)
             {
-                return new Point(0, 0);
+                x = TraficLight.MATRIX_WIDTH;
             }
+
+            // Clamp y to the edge of the matrix, if needed.
+            if (y < 0)
+            {
+                y = 0;
+            }
+            else if(y > TraficLight.MATRIX_WIDTH)
+            {
+                y = TraficLight.MATRIX_WIDTH;
+            }
+
+            return new Point(x, y);
         }
         public static Point CalculateCorrection(this Point pointA, Point pointB, int desiredDistance)
         {

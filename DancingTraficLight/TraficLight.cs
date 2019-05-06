@@ -31,19 +31,13 @@ namespace DancingTraficLight
 
         // FormApp Only
         private Bitmap matrixImage = new Bitmap(MATRIX_WIDTH, MATRIX_WIDTH);
-        private Color positiveColor = Color.DarkRed;//Color.FromArgb(255, 225, 0, 0);
-        private Color negativeColor = Color.Black;//Color.FromArgb(255, 35, 35, 35);
+        private Color positiveColor = Color.DarkRed;    //Color.FromArgb(255, 225, 0, 0);
+        private Color negativeColor = Color.Black;      //Color.FromArgb(255, 35, 35, 35);
 
         public TraficLight()
         {
             InitializeComponent();
             InitializeKinect();
-
-            CameraSpacePoint centerPoint = new CameraSpacePoint();
-
-            DrawCircle(centerPoint, 16);
-
-            RefreshImage();
         }
         private void InitializeKinect()
         {
