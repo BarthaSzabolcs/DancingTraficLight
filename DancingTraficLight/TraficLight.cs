@@ -82,36 +82,47 @@ namespace DancingTraficLight
             // Head
             DrawCircle(joints[JointType.Head].Position, 4);
 
-            ////Shoulders
-            //DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderLeft, 2, 2);          // Left Shoulder
-            //DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderRight, 2, 2);         // Right Shoulder
+            // Left Shoulder
+            //DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderLeft, 2, 2);
+            // Right Shoulder
+            //DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderRight, 2, 2);         
 
-            ////Torso 2.1
-            //DrawBone(joints, JointType.SpineMid, JointType.SpineShoulder, 10, 6);
-            //DrawBone(joints, JointType.SpineBase, JointType.SpineMid, 6, 10);
+            // Upper Torso
+            DrawBone(joints, JointType.SpineMid, JointType.SpineShoulder, 10, 6);
+            // Lower Torso
+            DrawBone(joints, JointType.SpineBase, JointType.SpineMid, 6, 10);
 
-            //// Hip
+            // Right Upper Arm
+            DrawBone(joints, JointType.ShoulderRight, JointType.ElbowRight, 3);
+            // Right Lower Arm
+            DrawBone(joints, JointType.ElbowRight, JointType.WristRight, 3, 2);
+            // Right Hand
+            //DrawBone(joints, JointType.WristRight, JointType.HandRight, 1);
+
+            // Left Upper Arm
+            DrawBone(joints, JointType.ShoulderLeft, JointType.ElbowLeft, 3);
+            // Left Lower Arm
+            DrawBone(joints, JointType.ElbowLeft, JointType.WristLeft, 3, 2);
+            // RIght Hand
+            //DrawBone(joints, JointType.WristLeft, JointType.HandLeft, 1);
+
+            // Hip
             //DrawBone(joints, JointType.HipLeft, JointType.HipRight, 6);
 
-            //////Right Arm
-            //DrawBone(joints, JointType.ShoulderRight, JointType.ElbowRight, 3, 2);           // Right Upper Arm
-            //DrawBone(joints, JointType.ElbowRight, JointType.WristRight, 2, 1);              // Right Lower Arm
-            //DrawBone(joints, JointType.WristRight, JointType.HandRight, 1);                  // Right Hand tip
+            // Right Upper leg
+            DrawBone(joints, JointType.HipRight, JointType.KneeRight, 3);
+            // Right Lower leg
+            DrawBone(joints, JointType.KneeRight, JointType.AnkleRight, 3, 2);
+            // Right Feet
+            //DrawBone(joints, JointType.AnkleRight, JointType.FootRight, 2);
 
-            //// Left Arm
-            //DrawBone(joints, JointType.ShoulderLeft, JointType.ElbowLeft, 3, 2);             // Left Upper Arm
-            DrawBone(joints, JointType.ElbowLeft, JointType.WristLeft, 2, 1);                // Left Lower Arm
-            //DrawBone(joints, JointType.WristLeft, JointType.HandLeft, 1);                   // Left Hand tip
+            // Left Upper leg
+            DrawBone(joints, JointType.HipLeft, JointType.KneeLeft, 3);
+            // Left Lower leg
+            DrawBone(joints, JointType.KneeLeft, JointType.AnkleLeft, 3, 2);
+            // Left Feet
+            //DrawBone(joints, JointType.AnkleLeft, JointType.FootLeft, 2);
 
-            //// Right Leg
-            //DrawBone(joints, JointType.HipRight, JointType.KneeRight, 3, 2);                 // Right Upper leg
-            //DrawBone(joints, JointType.KneeRight, JointType.AnkleRight, 2, 1);               // Right Lower leg
-            //DrawBone(joints, JointType.AnkleRight, JointType.FootRight, 1);                  // Right Feet
-
-            //// Left Leg
-            //DrawBone(joints, JointType.HipLeft, JointType.KneeLeft, 3, 2);                   // Left Upper leg
-            //DrawBone(joints, JointType.KneeLeft, JointType.AnkleLeft, 2, 1);                 // Left Lower leg
-            //DrawBone(joints, JointType.AnkleLeft, JointType.FootLeft, 1);                    // Left Feet
         }
         private void DrawBone(IReadOnlyDictionary<JointType, Joint> joints, JointType jointType0, JointType jointType1, int joint0_width)
         {
