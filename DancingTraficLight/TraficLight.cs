@@ -13,9 +13,9 @@ namespace DancingTraficLight
     public partial class TraficLight : Form
     {
         // World To Matrix parameters
-        public const int MATRIX_WIDTH = 64;
+        public const int MATRIX_WIDTH = 32;
         public const float MATRIXUNIT_IN_METER = 0.033f; //0.038f;
-        public const int VERTICAL_OFFSET = -7;
+        public const int VERTICAL_OFFSET = -3;
         public const int HORIZONTAL_OFFSET = 0;
 
         // Kinect
@@ -79,8 +79,112 @@ namespace DancingTraficLight
         {
             IReadOnlyDictionary<JointType, Joint> joints = body.Joints;
 
+            if (MATRIX_WIDTH == 32)
+            {
+                DrawBody32(joints);
+            }
+            else if(MATRIX_WIDTH == 64)
+            {
+                DrawBody64(joints);
+            }
+            else
+            {
+                // Head
+                DrawCircle(joints[JointType.Head].Position, 6);
+
+                // Left Shoulder
+                //DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderLeft, 2, 2);
+                // Right Shoulder
+                //DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderRight, 2, 2);         
+
+                // Upper Torso
+                DrawBone(joints, JointType.SpineMid, JointType.SpineShoulder, 10, 6);
+                // Lower Torso
+                DrawBone(joints, JointType.SpineBase, JointType.SpineMid, 6, 10);
+
+                // Right Upper Arm
+                DrawBone(joints, JointType.ShoulderRight, JointType.ElbowRight, 3);
+                // Right Lower Arm
+                DrawBone(joints, JointType.ElbowRight, JointType.WristRight, 3, 2);
+                // Right Hand
+                //DrawBone(joints, JointType.WristRight, JointType.HandRight, 3);
+
+                // Left Upper Arm
+                DrawBone(joints, JointType.ShoulderLeft, JointType.ElbowLeft, 3);
+                // Left Lower Arm
+                DrawBone(joints, JointType.ElbowLeft, JointType.WristLeft, 3, 2);
+                // RIght Hand
+                //DrawBone(joints, JointType.WristLeft, JointType.HandLeft, 3);
+
+                // Hip
+                //DrawBone(joints, JointType.HipLeft, JointType.HipRight, 6);
+
+                // Right Upper leg
+                DrawBone(joints, JointType.HipRight, JointType.KneeRight, 3);
+                // Right Lower leg
+                DrawBone(joints, JointType.KneeRight, JointType.AnkleRight, 3, 2);
+                // Right Feet
+                //DrawBone(joints, JointType.AnkleRight, JointType.FootRight, 3);
+
+                // Left Upper leg
+                DrawBone(joints, JointType.HipLeft, JointType.KneeLeft, 3);
+                // Left Lower leg
+                DrawBone(joints, JointType.KneeLeft, JointType.AnkleLeft, 3, 2);
+                // Left Feet
+                //DrawBone(joints, JointType.AnkleLeft, JointType.FootLeft, 3);
+            }
+
+        }
+        private void DrawBody32(IReadOnlyDictionary<JointType, Joint> joints)
+        {
             // Head
-            DrawCircle(joints[JointType.Head].Position, 4);
+            DrawCircle(joints[JointType.Head].Position, 3);
+
+            // Left Shoulder
+            //DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderLeft, 2, 2);
+            // Right Shoulder
+            //DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderRight, 2, 2);         
+
+            // Upper Torso
+            DrawBone(joints, JointType.SpineMid, JointType.SpineShoulder, 6, 3);
+            // Lower Torso
+            DrawBone(joints, JointType.SpineBase, JointType.SpineMid, 3, 6);
+
+            // Right Upper Arm
+            DrawBone(joints, JointType.ShoulderRight, JointType.ElbowRight, 2);
+            // Right Lower Arm
+            DrawBone(joints, JointType.ElbowRight, JointType.WristRight, 2, 1);
+            // Right Hand
+            //DrawBone(joints, JointType.WristRight, JointType.HandRight, 1);
+
+            // Left Upper Arm
+            DrawBone(joints, JointType.ShoulderLeft, JointType.ElbowLeft, 2);
+            // Left Lower Arm
+            DrawBone(joints, JointType.ElbowLeft, JointType.WristLeft, 2, 1);
+            // RIght Hand
+            //DrawBone(joints, JointType.WristLeft, JointType.HandLeft, 1);
+
+            // Hip
+            //DrawBone(joints, JointType.HipLeft, JointType.HipRight, 3);
+
+            // Right Upper leg
+            DrawBone(joints, JointType.HipRight, JointType.KneeRight, 2);
+            // Right Lower leg
+            DrawBone(joints, JointType.KneeRight, JointType.AnkleRight, 2, 1);
+            // Right Feet
+            //DrawBone(joints, JointType.AnkleRight, JointType.FootRight, 1);
+
+            // Left Upper leg
+            DrawBone(joints, JointType.HipLeft, JointType.KneeLeft, 2);
+            // Left Lower leg
+            DrawBone(joints, JointType.KneeLeft, JointType.AnkleLeft, 2, 1);
+            // Left Feet
+            //DrawBone(joints, JointType.AnkleLeft, JointType.FootLeft, 1);
+        }
+        private void DrawBody64(IReadOnlyDictionary<JointType, Joint> joints)
+        {
+            // Head
+            DrawCircle(joints[JointType.Head].Position, 6);
 
             // Left Shoulder
             //DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderLeft, 2, 2);
@@ -97,14 +201,14 @@ namespace DancingTraficLight
             // Right Lower Arm
             DrawBone(joints, JointType.ElbowRight, JointType.WristRight, 3, 2);
             // Right Hand
-            //DrawBone(joints, JointType.WristRight, JointType.HandRight, 1);
+            //DrawBone(joints, JointType.WristRight, JointType.HandRight, 3);
 
             // Left Upper Arm
             DrawBone(joints, JointType.ShoulderLeft, JointType.ElbowLeft, 3);
             // Left Lower Arm
             DrawBone(joints, JointType.ElbowLeft, JointType.WristLeft, 3, 2);
             // RIght Hand
-            //DrawBone(joints, JointType.WristLeft, JointType.HandLeft, 1);
+            //DrawBone(joints, JointType.WristLeft, JointType.HandLeft, 3);
 
             // Hip
             //DrawBone(joints, JointType.HipLeft, JointType.HipRight, 6);
@@ -114,15 +218,14 @@ namespace DancingTraficLight
             // Right Lower leg
             DrawBone(joints, JointType.KneeRight, JointType.AnkleRight, 3, 2);
             // Right Feet
-            //DrawBone(joints, JointType.AnkleRight, JointType.FootRight, 2);
+            //DrawBone(joints, JointType.AnkleRight, JointType.FootRight, 3);
 
             // Left Upper leg
             DrawBone(joints, JointType.HipLeft, JointType.KneeLeft, 3);
             // Left Lower leg
             DrawBone(joints, JointType.KneeLeft, JointType.AnkleLeft, 3, 2);
             // Left Feet
-            //DrawBone(joints, JointType.AnkleLeft, JointType.FootLeft, 2);
-
+            //DrawBone(joints, JointType.AnkleLeft, JointType.FootLeft, 3);
         }
         private void DrawBone(IReadOnlyDictionary<JointType, Joint> joints, JointType jointType0, JointType jointType1, int joint0_width)
         {
