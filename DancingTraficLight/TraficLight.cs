@@ -15,16 +15,16 @@ namespace DancingTraficLight
     {
         // World To Matrix parameters
         public const int MATRIX_SIZE_MULTIPLIER = 1;
-        public const int MATRIX_WIDTH = 32 * MATRIX_SIZE_MULTIPLIER;
-        public const float MATRIXUNIT_IN_METER = 0.033f * 1.7f / MATRIX_SIZE_MULTIPLIER; //0.038f;
         public const int VERTICAL_OFFSET = -2;
         public const int HORIZONTAL_OFFSET = 0;
+
+        public const int MATRIX_WIDTH = 32 * MATRIX_SIZE_MULTIPLIER;
+        public const float MATRIXUNIT_IN_METER = 0.033f * 1.7f / MATRIX_SIZE_MULTIPLIER; //0.038f;
 
         //Drawing
         private Graphics gfx;
         private Pen pen;
         private Bitmap output;
-
         private byte[,] headMatrix = 
         {
             {0, 0, 1, 1, 0, 0},
@@ -42,8 +42,8 @@ namespace DancingTraficLight
 
         // FormApp Only
         private Bitmap matrixImage = new Bitmap(MATRIX_WIDTH, MATRIX_WIDTH);
-        private Color positiveColor = Color.DarkRed;    //Color.FromArgb(255, 225, 0, 0);
-        private Color negativeColor = Color.Black;      //Color.FromArgb(255, 35, 35, 35);
+        private Color positiveColor = Color.DarkRed;
+        private Color negativeColor = Color.Black;
 
         public TraficLight()
         {
@@ -283,9 +283,28 @@ namespace DancingTraficLight
             {
                 for (int x = 0; x < MATRIX_WIDTH; x++)
                 {
-                    dataMatrix[x, y] = output.GetPixel(x, y).GetHashCode() == positiveColor.GetHashCode() ? true : false;
+                    var pixel = output.GetPixel(x, y);
+                    if (pixel.R == positiveColor.R &&
+                        pixel.G == positiveColor.G &&
+                        pixel.B == positiveColor.B)
+                    {
+                        dataMatrix[x, y] = true;
+                    }
                 }
             }
+
+        // Test
+
+        //    Bitmap testOutput = new Bitmap(MATRIX_WIDTH, MATRIX_WIDTH);
+        //    for (int x = 0; x < MATRIX_WIDTH; x++)
+        //    {
+        //        for (int y = 0; y < MATRIX_WIDTH; y++)
+        //        {
+        //            testOutput.SetPixel(x, y, dataMatrix[x, y] ? positiveColor : negativeColor);
+        //        }
+        //    }
+
+        //    outPutPicture_test.Image = testOutput;
         }
     }
 }
