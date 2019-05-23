@@ -42,5 +42,11 @@ namespace DancingTraficLight.ExtensionMethods
 
             return new Point(x, y);
         }
+        public static double Angle(this Point pointA, Point pointB)
+        {
+            float xDiff = pointB.X - pointA.X;
+            float yDiff = pointB.Y - pointA.Y;
+            return Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI;
+        }
     }
 }

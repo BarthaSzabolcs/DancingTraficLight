@@ -7,6 +7,7 @@ using System.Numerics;
 using System.Windows.Forms;
 using System.Linq;
 using DancingTraficLight.ExtensionMethods;
+using System.Drawing.Drawing2D;
 
 namespace DancingTraficLight
 {
@@ -88,6 +89,7 @@ namespace DancingTraficLight
                 }
             }
             outPutPicture.Refresh();
+            SendData();
         }
 
         private void DrawBody(Body body)
@@ -107,22 +109,16 @@ namespace DancingTraficLight
         private void DrawBody32(IReadOnlyDictionary<JointType, Joint> joints)
         {
             // Head
-            //DrawCircle(joints[JointType.Head].Position.ToGridPosition(), 6);
             DrawFixHead(joints[JointType.Head].Position.ToGridPosition(), headMatrix);
 
             // Left Shoulder
-            DrawBoneWithCircles(joints, JointType.SpineShoulder, JointType.ShoulderLeft, 2, 2);
+            DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderLeft, 2, 2);
             // Right Shoulder
-            DrawBoneWithCircles(joints, JointType.SpineShoulder, JointType.ShoulderRight, 2, 2);
+            DrawBone(joints, JointType.SpineShoulder, JointType.ShoulderRight, 2, 2);
 
-            // Upper Torso
-           DrawBone(joints, JointType.SpineShoulder, JointType.SpineMid, 6);
-           DrawBoneWithCircles(joints, JointType.SpineMid, JointType.ShoulderLeft, 2, 2);
-           DrawBoneWithCircles(joints, JointType.SpineMid, JointType.ShoulderRight, 2, 2);
+            // Torso
+            FillElipseWithAngle(joints, JointType.SpineShoulder, JointType.SpineBase, 8);
             
-            // Lower Torso
-            DrawBoneWithCircles(joints, JointType.SpineBase, JointType.SpineMid, 6,6);
-
             //Right Upper Arm
             DrawBoneWithCircles(joints, JointType.ShoulderRight, JointType.ElbowRight, 2, 2);
             //Right Lower Arm
@@ -138,7 +134,7 @@ namespace DancingTraficLight
             //DrawBone(joints, JointType.WristLeft, JointType.HandLeft, 3);
 
             // Hip
-            DrawBone(joints, JointType.HipLeft, JointType.HipRight, 4, 4);
+            DrawBoneWithCircles(joints, JointType.HipLeft, JointType.HipRight, 4, 4);
 
             // Right Upper leg
             DrawBoneWithCircles(joints, JointType.HipRight, JointType.KneeRight, 2, 2);
@@ -251,6 +247,43 @@ namespace DancingTraficLight
                     {
                         gfx.FillRectangle(pen.Brush, corner.X + x, corner.Y + y, 1, 1);
                     }
+                }
+            }
+        }
+
+        private void FillElipseWithAngle(IReadOnlyDictionary<JointType, Joint> joints, JointType jointType0, JointType jointType1, int width)
+        {
+            Point top = joints[jointType0].Position.ToGridPosition();
+            Point bottom = joints[jointType1].Position.ToGridPosition();
+            Point middle = new Point((top.X + bottom.X) / 2, (top.Y + bottom.Y) / 2);
+            Point corner = new Point
+                ( 
+                    top.X < bottom.X ? top.X - width / 2: bottom.X - width / 2, 
+                    top.Y < bottom.Y ? top.Y : bottom.Y
+                );
+
+            float angle = (float)middle.Angle(bottom) + 90;
+            int height = (int)Math.Sqrt(Math.Pow(top.X - bottom.X, 2) + Math.Pow(top.Y - bottom.Y, 2));
+
+            Matrix matrix = new Matrix();
+
+            matrix.RotateAt(angle, middle);
+            gfx.Transform = matrix;
+
+            gfx.FillEllipse(pen.Brush, corner.X, corner.Y, width, height);
+
+            matrix.RotateAt(-angle, middle);
+            gfx.Transform = matrix;
+        }
+        private void SendData()
+        {
+            bool[,] dataMatrix = new bool[MATRIX_WIDTH, MATRIX_WIDTH];
+
+            for (int y = 0; y < MATRIX_WIDTH; y++)
+            {
+                for (int x = 0; x < MATRIX_WIDTH; x++)
+                {
+                    dataMatrix[x, y] = output.GetPixel(x, y).GetHashCode() == positiveColor.GetHashCode() ? true : false;
                 }
             }
         }
